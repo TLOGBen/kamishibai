@@ -1,5 +1,5 @@
 import { rmSync, readFileSync, statSync } from 'node:fs'
-import { isAbsolute } from 'node:path'
+import { dirname, isAbsolute } from 'node:path'
 import { describe, it, expect, beforeAll } from 'vitest'
 import { runCli, outDir } from './helpers.js'
 
@@ -20,13 +20,16 @@ describe('A7 CLI 介面契約', () => {
     expect(runCli(['render', 'fixtures/book-sample.md', '-o', ARTIFACT]).code).toBe(0)
   })
 
-  it('test_render_json_shape: render --json 恰為 {ok,artifact,bytes}，artifact 為絕對路徑', () => {
+  it('test_render_json_shape: render --json 恰為 {ok,artifact,bytes,archived}，路徑皆為絕對', () => {
     const r = runCli(['render', 'fixtures/book-sample.md', '-o', ARTIFACT, '--json'])
     expect(r.code).toBe(0)
     const out = parseOne(r.stdout)
-    expect(Object.keys(out).sort()).toEqual(['artifact', 'bytes', 'ok'])
+    expect(Object.keys(out).sort()).toEqual(['archived', 'artifact', 'bytes', 'ok'])
     expect(out.ok).toBe(true)
     expect(isAbsolute(out.artifact)).toBe(true)
+    // B3：中央庫正本路徑為第四鍵，且確實落在磁碟上
+    expect(isAbsolute(out.archived)).toBe(true)
+    expect(statSync(out.archived).size).toBe(out.bytes)
     expect(Number.isInteger(out.bytes)).toBe(true)
     expect(out.bytes).toBeGreaterThan(0)
     // 真值錨：bytes 必須等於磁碟上的實際大小。少了這條，`html.length`
@@ -162,6 +165,9 @@ describe('A7 CLI 介面契約', () => {
     expect(humanRender.code).toBe(0)
     expect(humanRender.stdout).toContain(jsonRender.artifact)
     expect(humanRender.stdout).toContain(String(jsonRender.bytes))
+    // 擴充鍵同樣兩路同源：archived 只活在 --json 就是兩路漂移。
+    // 逐次歸檔不覆寫（B2），故兩次呼叫的正本檔名本就不同——比對到目錄為止。
+    expect(humanRender.stdout, '人類路必須帶出正本落點').toContain(dirname(jsonRender.archived))
 
     const jsonLint = parseOne(runCli(['lint', 'fixtures/broken/no-ir.html', '--json']).stdout)
     const humanLint = runCli(['lint', 'fixtures/broken/no-ir.html'])
@@ -206,5 +212,44 @@ describe('A7 CLI 介面契約', () => {
     const jsonSchema = parseOne(runCli(['schema', '--json']).stdout)
     const humanSchema = JSON.parse(runCli(['schema']).stdout)
     expect(humanSchema).toEqual(jsonSchema)
+
+    // B8：三個新指令沿用同一個 formatter，兩路仍出自同一結果物件
+    const listArgs = ['list', '--project', 'a7-formatter']
+    expect(runCli(['render', 'fixtures/book-sample.md', '-o', ARTIFACT, ...listArgs.slice(1)]).code)
+      .toBe(0)
+    const jsonList = JSON.parse(runCli([...listArgs, '--json']).stdout)
+    const humanList = runCli(listArgs)
+    expect(humanList.code).toBe(0)
+    expect(jsonList.length).toBeGreaterThan(0)
+    for (const entry of jsonList) {
+      expect(humanList.stdout, '人類路缺少產物名稱').toContain(entry.name)
+      expect(humanList.stdout, '人類路缺少模板').toContain(entry.template)
+      expect(humanList.stdout, '人類路缺少正本路徑').toContain(entry.artifact)
+    }
+    const emptyList = runCli(['list', '--project', 'a7-empty'])
+    expect(emptyList.code).toBe(0)
+    expect(JSON.parse(runCli(['list', '--project', 'a7-empty', '--json']).stdout)).toEqual([])
+    expect(emptyList.stdout.trim().length, '空專案的人類路仍須說一句話').toBeGreaterThan(0)
+
+    const openArgs = ['open', 'latest', '--project', 'a7-formatter', '--dry-run']
+    const jsonOpen = parseOne(runCli([...openArgs, '--json']).stdout)
+    const humanOpen = runCli(openArgs)
+    expect(humanOpen.code).toBe(0)
+    expect(humanOpen.stdout.trimEnd()).toBe(jsonOpen.path)
+
+    const replayArgs = [
+      'replay',
+      jsonOpen.path,
+      '-o',
+      `${OUT_DIR}/replayed.html`,
+      '--project',
+      'a7-formatter',
+    ]
+    const jsonReplay = parseOne(runCli([...replayArgs, '--json'], { env: PINNED }).stdout)
+    const humanReplay = runCli(replayArgs, { env: PINNED })
+    expect(humanReplay.code).toBe(0)
+    expect(humanReplay.stdout).toContain(jsonReplay.artifact)
+    expect(humanReplay.stdout).toContain(String(jsonReplay.bytes))
+    expect(humanReplay.stdout).toContain(dirname(jsonReplay.archived))
   })
 })

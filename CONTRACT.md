@@ -1,50 +1,43 @@
-# CONTRACT — S1 核心脊椎：IR＋render＋Kami 長文模板＋CLI 基本盤
-> STATUS: sealed（2026-08-16）— 五點全符合：A1–A10 逐條過、7 表面全釘死、跨 UI 單一 formatter、九組常數 byte-exact、突變 2/2 被攔（歷三輪 21 findings 修復後 clean）
+# CONTRACT — S2 book 遷移 I：中央產物庫＋open/list/replay＋交付鏈
 
 ## 目標
-repo 內出現可運作的 SDK 第一片：CLI 能把 Markdown 超集或 block tree JSON 渲染成
-離線單檔 HTML（Kami 長文模板、字體子集內嵌、IR 隨行），並以 lint／example／schema
-形成 Agent 防試錯迴路。全程 TDD，clean arch 分層。
+S1 的渲染脊椎升級為完整交付鏈：render 自動歸檔正本至中央產物庫並落投遞副本；
+Agent 能以 list 查專案呈現史、以 open 解析開啟、以 replay 從產物內嵌 IR 重繪。
+既有 52 測試照綠（S1 為受保護地基）。
 
 ## 前提（Premises）
-- P1 `已驗`：規格真源＝SPEC.md@2919955（本 session 蒸餾並經指揮官逐條驗收）。
-- P2 `已驗`：vite-plugin-singlefile@2.3.3 存在且支援 vite ^5.4‖^6‖^7‖^8（registry 實查 2026-08-16）。
-- P3 `已驗`：Noto Serif TC（google/fonts ofl 目錄 HTTP 200）與 Maple Mono CN（Maple-font v7.9 release 含 MapleMono-CN.zip）可離線取得、OFL 可散布（實查 2026-08-16）。
-- P4 `已驗`：IR 內嵌 type＝`application/kamishibai+json`（issues/11 P4；SPEC §7.3）。
+- P1 `已驗`：S1 sealed 基底＝commit 3867e21（CONTRACT 已歸檔 .claude/archived/）。
+- P2 `已驗`：中央庫佈局規格＝SPEC.md §6（`~/.kamishibai/artifacts/<專案>/`）、專案解析四層＝SPEC §8（issues/12 定案）。
+- P3 `已驗`：IR 內嵌欄位完整（S1 A2 已釘），replay 之資料源充分。
+- P4 `已驗`（稽核官修正條款）：`~/.kamishibai` 為戰役保護資產；未經安全閘不得寫入。
 
 ## 可斷言條文
-G2：本任務無既有程式面可讀（greenfield），查無程式陷阱；條文僅由 SPEC 推導。
-- [ ] A1 `kamishibai render fixtures/book-sample.md -o out/book.html` exit 0，產出恰一個 .html 檔。
-- [ ] A2 產物含恰一個 `<script type="application/kamishibai+json">`，JSON 可解析且含全部欄位：`irVersion, engine, template{namespace,name,version}, doc, createdAt, generator`。
-- [ ] A3 產物禁出現任何會發外部請求的資源引用：`<link …href=`、`<script …src=`、`<img …src="http`、`@import`、`url(http`（內容文字與 `<a href>` 的外部連結不在此限）。
-- [ ] A4 產物內嵌 WOFF2 data URI 字體子集（至少 Noto Serif TC）；**凡 CSS 宣告之具名字族必有對應內嵌 face（宣告即內嵌）**；全檔禁出現字串 `TsangerJinKai`。（seal 補釘：Maple Mono CN 內嵌延至 S3，S1 等寬用 generic monospace）
-- [ ] A5 `kamishibai lint <A1產物>` exit 0；對 fixtures/broken/（缺 IR、含外部 `<script src>` 兩案）exit 1，`--json` 錯誤物件含 `path`＋`code`；**增列乾淨案：內容文字含禁形字樣（code block 內 `@import url(https://…)`）之文件、與內容含 `<!--` 之文件，render 後 lint 皆須 exit 0**（seal 補釘 F1/F2）；**增列壞案：raw 島嶼內活 `<style>@import url(https://…)</style>` 與 `style="…url(http://…)"` → lint exit 1 且 code 含 `KSB_EXTERNAL_CSS_IMPORT`／`KSB_EXTERNAL_CSS_URL`**（複驗補釘 F-C）。
-- [ ] A6 防試錯自證：`kamishibai example doc | kamishibai render - -o out/e.html` exit 0（example 輸出必為合法輸入）；`kamishibai schema` 輸出合法 JSON Schema 且 A2 之 IR 通過其驗證。
-- [ ] A7 **任何呼叫形**（四指令＋無指令＋未知旗標）在 `--json` 下 stdout 恆為單一合法 JSON 物件（成敗皆然）；exit code：0=成功、1=驗證失敗、2=用法錯誤；`--help`/`--version` 僅於明示要求時 exit 0（seal 補釘 F3）；**用法錯誤之 `message` 禁含 commander 內部 token（禁列：`(outputHelp)` 等），且「無指令」之 message 於人類路與 `--json` 路完全相同**（複驗補釘 F-A）。
-- [ ] A8 冪等：設 `KAMISHIBAI_BUILD_TIME` 固定時間戳後，同輸入連跑兩次 render 產物 byte-identical。
-- [ ] A9 分層：`src/` 下存在 `parser/ core/ render/ delivery/ cli/` 五層目錄；`cli/` 內任何檔案禁 `import`/`require` `vue`；任一源檔 ≤800 行（腳本檢查）。
-- [ ] A10 `npm test` exit 0；A1–A9 每條在測試碼中有具名對應測試（見下表）。
+G2：觸及面為本 repo S1 程式（已逐檔審過三輪 seal）；新陷阱＝家目錄寫入與跨環境路徑，已升為 B1/B2 條文。
+- [ ] B1 **HOME 紀律**：所有中央庫路徑經單一解析函式，`KAMISHIBAI_HOME` 環境變數優先、預設 `~/.kamishibai`；**整個測試套件禁觸真實家目錄**（測試自我斷言其 HOME 為暫存目錄；CI 可驗）。
+- [ ] B2 **首觸安全閘**：真實執行首次寫入前探測庫根——不存在→建立並寫入 `created-by: kamishibai@<version>` 標記檔；已存在→不動既有檔案、僅追加（禁覆寫既存產物檔，同 slug 依 SPEC 走版本化/時戳尾綴）；**不覆寫須為機械性：產物寫入以 exclusive flag（`wx`）落檔、`EEXIST` 時重取唯一名重試（seal 補釘 F2）**。
+- [ ] B3 render 完成後：中央庫 `artifacts/<專案>/<slug>.html` 正本存在，且與 `-o` 投遞副本 byte-identical；`--json` 輸出增列 `archived:"<abs path>"` 頂層鍵（原三鍵不變）。
+- [ ] B4 `list --json`：輸出當前專案全部產物之陣列，每筆恰含 `{name, template, createdAt, generator, artifact, copies}`；專案解析依「`--project` → `.kamishibai.toml` → git root → cwd」四層，測試至少覆蓋 `--project` 與 git root 兩層；**衍生名兩級驗證（seal 補釘 F1）：使用者明指的 `--project` 嚴格拒收非法名；衍生層（錨點檔／git root／cwd）改決定性正規化（空白→`-` 等）後採用——含空白目錄名下 render 必須 exit 0 且歸檔至正規化專案目錄（釘死測試必備）**。
+- [ ] B5 `open <name|latest> --dry-run`：解析中央庫並輸出目標絕對路徑 exit 0（不開瀏覽器）；查無 → exit 1 `KSB_ARTIFACT_NOT_FOUND`。
+- [ ] B6 `replay <artifact> -o <out>`：讀內嵌 IR 重繪；固定 `KAMISHIBAI_BUILD_TIME` 下與原 render 產物 byte-identical；對無 IR 檔 exit 1 `KSB_IR_MISSING`。
+- [ ] B7 端到端：`fixtures/book-sample.md` 走 render→list→open --dry-run→replay 全鏈之整合測試，全程於測試 HOME 內。
+- [ ] B8 回歸：S1 全部 52 測試照綠；S1 五層分層與單檔 ≤800 行紀律不破；新指令沿用 `--json`/exit code/formatter 既有慣例（含於既有 formatter 測試）。
 
 ## 錯不起表面（Surface Inventory）
 | 表面 | 格式 | 釘死測試 |
 |------|------|----------|
-| render `--json` 成功 | `{"ok":true,"artifact":"<abs path>","bytes":<int>}` 無其他頂層鍵；**`bytes` ≡ 產物檔案真實 UTF-8 byte 長度（與 `statSync(artifact).size` 相等，禁 UTF-16 code unit 數）**（第三輪補釘 F-1） | test_render_json_shape |
-| lint `--json` 失敗 | `{"ok":false,"errors":[{"path":"<block path>","code":"<KSB_*>","message":"<非空字串>"}]}`；**每筆 message 長度 > 0，且人類路輸出逐字包含同一 message**（終審補釘 F-1） | test_lint_json_errors |
-| example stdout | 即合法輸入本身（round-trip 由 A6 釘） | test_example_roundtrip |
-| schema stdout | JSON Schema（draft 2020-12，`$schema` 欄位必在） | test_schema_valid |
-| 人類可讀輸出（四指令） | 與 `--json` 共用同一結果物件經單一 formatter 產生；兩路皆有測試（**含 lint 成功路**，seal 補釘 F5）；**錯誤摘要行 `✖ {N} 個問題：` 之 N ≡ errors.length**（複驗補釘 F-D） | test_formatter_shared_both_paths |
-| 渲染本體（每個 block 型別） | body 內有可辨識輸出；**IR 有則 body 有**對稱斷言（seal 補釘 F4）；**callout 標籤文字逐 variant 釘死（note→NOTE、warn→WARNING），且 fixture 語料窮舉 `CALLOUT_VARIANTS` 每一項**（終審補釘 F-2）；**`<p class="prose">` 內禁出現 `<ul|ol|div|pre|table|blockquote`（block-level 內容改用 `<div class="prose">` 容器），對稱斷言之 `block.html` 須非空**（第二輪終審補釘 F-A/F-B）；**字體子集有下界：內嵌 face 數 ≡ 依產物正文 codepoints 重算之應選 face 數**（F-C） | test_render_body_blocks |
-| `--help --json` / `--version --json` | `{"ok":true,"help":"…"}`（help 非空）/ `{"ok":true,"version":"<semver>"}`（version 比對 engine，頂層鍵恰為所列） | test_a7_explicit_help_and_version_exit_zero |
+| render `--json` 成功（擴充） | `{"ok":true,"artifact":…,"bytes":…,"archived":"<abs path>"}` 恰四鍵；bytes 真值錨沿用 | test_render_json_shape |
+| list `--json` | 陣列，每筆恰六鍵（見 B4）；空專案輸出 `[]` exit 0 | test_list_json_shape |
+| open `--dry-run` | stdout 恰為目標絕對路徑一行；`--json` 為 `{"ok":true,"path":…}` | test_open_dry_run |
+| replay `--json` | 與 render 同形（含 archived） | test_replay_json_shape |
+| 中央庫佈局 | `<HOME>/artifacts/<專案>/<slug>.html`＋`created-by` 標記檔 | test_store_layout |
 
 ## Verbatim Constants
 ```
-script type:      application/kamishibai+json
-IR 欄位:          irVersion, engine, template.namespace, template.name, template.version, doc, createdAt, generator
-env:              KAMISHIBAI_BUILD_TIME
-exit codes:       0=成功 1=驗證失敗 2=用法錯誤
-錯誤碼前綴:       KSB_
-禁字串:           TsangerJinKai
-外部資源禁形:     <link …href= / <script …src= / <img …src="http / @import / url(http
-字體:             Noto Serif TC（正文襯線）；等寬 S1 用 generic monospace（Maple Mono CN 內嵌列 S3，seal 補釘 F6）
-套件名/bin:       @kamishibai/sdk / kamishibai
+env:            KAMISHIBAI_HOME（預設 ~/.kamishibai）
+庫佈局:         artifacts/<專案名>/<slug>.html
+標記檔:         created-by
+新錯誤碼:       KSB_ARTIFACT_NOT_FOUND
+專案解析序:     --project → .kamishibai.toml → git root → cwd
+list 六鍵:      name, template, createdAt, generator, artifact, copies
+render 四鍵:    ok, artifact, bytes, archived
 ```

@@ -7,6 +7,9 @@ import { renderCommand } from './commands/render.js'
 import { lintCommand } from './commands/lint.js'
 import { exampleCommand } from './commands/example.js'
 import { schemaCommand } from './commands/schema.js'
+import { listCommand } from './commands/list.js'
+import { openCommand } from './commands/open.js'
+import { replayCommand } from './commands/replay.js'
 
 const argv = process.argv
 const wantsJson = argv.includes('--json')
@@ -17,8 +20,16 @@ const VERSION_CODE = 'commander.version'
 const HELP_FLAGS = new Set(['-h', '--help', 'help'])
 const VERSION_FLAGS = new Set(['-v', '--version'])
 
-/** The four subcommands. Presence of one is what makes an invocation a command. */
-const COMMANDS = Object.freeze(['render', 'lint', 'example', 'schema'])
+/** The subcommands. Presence of one is what makes an invocation a command. */
+const COMMANDS = Object.freeze([
+  'render',
+  'lint',
+  'example',
+  'schema',
+  'list',
+  'open',
+  'replay',
+])
 
 /** The single wording for "you gave no command", shared by both output paths. */
 const NO_COMMAND_MESSAGE = 'no command given; try `kamishibai --help`'
@@ -70,10 +81,47 @@ const buildProgram = () => {
     .option('-o, --out <path>', '產物輸出路徑')
     .option('-t, --template <key>', '覆寫模板 <namespace>/<name>')
     .option('-g, --generator <name>', 'IR generator 欄位值')
+    .option('-p, --project <name>', '覆寫中央產物庫的專案名（預設依四層解析）')
     .option('--json', '以 JSON 輸出結果')
     .action(async (input, options) => {
       const { result, exitCode } = await renderCommand(input, options)
       emit({ command: 'render', result, json: wantsJson, exitCode })
+    })
+
+  program
+    .command('replay')
+    .description('由產物內嵌 IR 重繪（換模板／升版／換皮）')
+    .argument('<artifact>', '既有產物 HTML 路徑')
+    .option('-o, --out <path>', '產物輸出路徑')
+    .option('-t, --template <key>', '覆寫模板 <namespace>/<name>')
+    .option('-g, --generator <name>', 'IR generator 欄位值')
+    .option('-p, --project <name>', '覆寫中央產物庫的專案名（預設依四層解析）')
+    .option('--json', '以 JSON 輸出結果')
+    .action(async (artifact, options) => {
+      const { result, exitCode } = await replayCommand(artifact, options)
+      emit({ command: 'replay', result, json: wantsJson, exitCode })
+    })
+
+  program
+    .command('list')
+    .description('列出當前專案的中央產物庫呈現史')
+    .option('-p, --project <name>', '覆寫專案名（預設 .kamishibai.toml → git root → cwd）')
+    .option('--json', '以 JSON 輸出結果')
+    .action((options) => {
+      const { result, exitCode } = listCommand(options)
+      emit({ command: 'list', result, json: wantsJson, exitCode })
+    })
+
+  program
+    .command('open')
+    .description('由中央產物庫解析並開啟產物（跨平台開啟鏈）')
+    .argument('<name>', '產物名稱，或 `latest` 表示最新一份')
+    .option('-p, --project <name>', '覆寫專案名（預設 .kamishibai.toml → git root → cwd）')
+    .option('--dry-run', '只解析路徑、不開啟瀏覽器')
+    .option('--json', '以 JSON 輸出結果')
+    .action((name, options) => {
+      const { result, exitCode } = openCommand(name, options)
+      emit({ command: 'open', result, json: wantsJson, exitCode })
     })
 
   program

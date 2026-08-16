@@ -5,7 +5,7 @@ import { repoRoot } from './helpers.js'
 
 const TESTS_DIR = join(repoRoot, 'tests')
 
-/** CONTRACT A10：A1–A9 每條在測試碼中有具名對應測試。 */
+/** CONTRACT A10：A1–A9（S1）與 B1–B8（S2）每條在測試碼中有具名對應測試。 */
 const CRITERIA = Object.freeze({
   A1: [
     'test_render_exit0_single_html',
@@ -55,6 +55,50 @@ const CRITERIA = Object.freeze({
   A9: [
     'test_a9_five_layers_exist',
     'test_a9_cli_layer_never_imports_vue',
+    'test_a9_no_source_file_exceeds_800_lines',
+  ],
+  B1: [
+    'test_b1_test_home_is_temporary',
+    'test_b1_render_never_touches_real_home',
+    'test_b1_every_cli_spawn_uses_the_injected_home',
+    'test_b1_single_home_resolver',
+    'test_b1_env_override_wins',
+  ],
+  B2: [
+    'test_store_layout',
+    'test_b2_existing_store_is_only_appended_to',
+    'test_b2_slug_collision_gets_timestamp_suffix',
+    'test_b2_archive_write_is_exclusive',
+  ],
+  B3: [
+    'test_render_json_shape',
+    'test_b3_archived_copy_is_byte_identical',
+    'test_b3_archive_happens_without_out_flag',
+  ],
+  B4: [
+    'test_list_json_shape',
+    'test_b4_project_resolution_layers',
+    'test_b4_list_resolves_project_the_same_way',
+    'test_b4_derived_project_names_are_normalised',
+    'test_b4_explicit_project_still_strict',
+  ],
+  B5: [
+    'test_open_dry_run',
+    'test_b5_open_latest_points_at_newest',
+    'test_b5_open_not_found_is_ksb_artifact_not_found',
+  ],
+  B6: [
+    'test_replay_json_shape',
+    'test_b6_replay_byte_identical',
+    'test_b6_replay_missing_ir',
+    'test_b6_replay_rejects_schema_invalid_ir',
+  ],
+  B7: ['test_b7_end_to_end_chain'],
+  B8: [
+    'test_b8_new_commands_follow_json_convention',
+    'test_b8_new_commands_classify_exit_codes',
+    'test_b8_new_commands_appear_in_help',
+    'test_formatter_shared_both_paths',
     'test_a9_no_source_file_exceeds_800_lines',
   ],
 })

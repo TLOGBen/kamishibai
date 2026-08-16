@@ -1,0 +1,118 @@
+第四輪整編（輕整編＋主攻交接 F1→F2）原始探測輸出
+書記官：sa-scribe｜戰役根：/home/vakarve/project/kamishibai
+工具：strategic_state.py 1.18.0
+說明：本 harness 未提供 Grep/Glob 工具，內容檢索改以唯讀 bash（grep/find/ls/sed/cat）替代，
+      全部路徑為絕對路徑且釘定於戰役根；無任何寫入性指令。
+
+═══ 批次 A ── 2026-08-16T19:39:15+0800（世界面／勝利條件） ═══
+$ find /home/vakarve/project/kamishibai/src -maxdepth 2 -type f | wc -l
+23
+$ find /home/vakarve/project/kamishibai/src -maxdepth 2 -type f | sort
+/home/vakarve/project/kamishibai/src/cli/emit.js
+/home/vakarve/project/kamishibai/src/cli/format.js
+/home/vakarve/project/kamishibai/src/cli/index.js
+/home/vakarve/project/kamishibai/src/core/blocks.js
+/home/vakarve/project/kamishibai/src/core/errors.js
+/home/vakarve/project/kamishibai/src/core/example.js
+/home/vakarve/project/kamishibai/src/core/ir.js
+/home/vakarve/project/kamishibai/src/core/lint.js
+/home/vakarve/project/kamishibai/src/core/scan.js
+/home/vakarve/project/kamishibai/src/core/schema.js
+/home/vakarve/project/kamishibai/src/core/validate.js
+/home/vakarve/project/kamishibai/src/core/version.js
+/home/vakarve/project/kamishibai/src/delivery/read.js
+/home/vakarve/project/kamishibai/src/delivery/write.js
+/home/vakarve/project/kamishibai/src/parser/artifact.js
+/home/vakarve/project/kamishibai/src/parser/container.js
+/home/vakarve/project/kamishibai/src/parser/index.js
+/home/vakarve/project/kamishibai/src/parser/tokens.js
+/home/vakarve/project/kamishibai/src/render/fonts.js
+/home/vakarve/project/kamishibai/src/render/html.js
+/home/vakarve/project/kamishibai/src/render/index.js
+/home/vakarve/project/kamishibai/src/render/ssr.js
+/home/vakarve/project/kamishibai/src/render/templates.js
+
+$ find /home/vakarve/project/kamishibai/tests -maxdepth 1 -name '*.test.js' | wc -l
+10
+（a1-render / a2-ir / a3-offline / a4-fonts / a5-lint / a6-selfproof / a7-cli-contract /
+  a8-idempotent / a9-layers / a10-coverage，另有 helpers.js）
+
+$ grep -n '"name"|"version"|"test"|"bin"' /home/vakarve/project/kamishibai/package.json
+2:  "name": "@kamishibai/sdk",
+3:  "version": "0.1.0",
+10:    "test": "vitest run"
+24:  "bin": {
+
+$ grep -c 'STATUS: sealed' /home/vakarve/project/kamishibai/CONTRACT.md
+1
+$ find /home/vakarve/project/kamishibai -path '*/node_modules' -prune -o -iname 'CONTRACT*.md' -print
+/home/vakarve/project/kamishibai/CONTRACT.md
+$ ls -1 /home/vakarve/project/kamishibai/.claude/
+research
+wayfinder
+→ 已封緘片數 1／5（vc1 SEALED_SLICE_COUNT == 5 判 FAIL）
+→ 註：前三輪 vc1 探測面為 grep -rl 'sealed' .claude/，該面現回 0 筆；
+   封緘記錄實際落在 repo 根 CONTRACT.md 第 2 行，本輪已改釘正確探測面，結論（FAIL）不變。
+
+$ grep -rl 'application/kamishibai+json' --include=*.html /home/.../out /home/.../out-test | wc -l
+32
+$ cat /home/vakarve/project/kamishibai/.gitignore
+node_modules/
+out/
+out-test/
+*.log
+→ 32 份內嵌 IR 的 HTML 全部落在被忽略的 out/ 與 out-test/，非追蹤產物；
+   lint 離場碼須執行 npm，不在書記官探測授權面內 → vc3 維持 FAIL（不足以轉 PASS）。
+
+$ ls -1 /home/.../kamishibai-sdk-v1/artifacts/ | grep -ci snapshot
+0
+→ vc4 SNAPSHOT_COMPARISON_ARTIFACT_COUNT >= 1 判 FAIL
+
+$ grep -c 'FAILURE|PIVOT' /home/.../kamishibai-sdk-v1/run-ledger.jsonl
+0
+$ state.json progress.sameFailureFingerprintCount
+0
+→ F2 PIVOT_TRIGGERED == true 判 FAIL（未達 repeatFailureLimit=2）
+
+═══ 批次 B ── 2026-08-16T19:39:31+0800（封緘與推送面） ═══
+$ git -C /home/vakarve/project/kamishibai status --short
+（空輸出＝追蹤樹乾淨）
+$ git -C /home/vakarve/project/kamishibai status -sb | head -3
+## main...origin/main
+$ cat /home/vakarve/project/kamishibai/.git/refs/heads/main
+3867e219381c6297dd226f6bc7a51963669d6f07
+$ cat /home/vakarve/project/kamishibai/.git/refs/remotes/origin/main
+3867e219381c6297dd226f6bc7a51963669d6f07
+$ sed -n '2p' /home/vakarve/project/kamishibai/CONTRACT.md
+> STATUS: sealed（2026-08-16）— 五點全符合：A1–A10 逐條過、7 表面全釘死、跨 UI 單一 formatter、九組常數 byte-exact、突變 2/2 被攔（歷三輪 21 findings 修復後 clean）
+
+═══ 批次 C ── 2026-08-16T19:42:33+0800（逾期清單工單：進場、風險、目標基數） ═══
+$ ls -la /home/vakarve/project/kamishibai/SPEC.md /home/vakarve/project/kamishibai/AGENTS.md
+.rw-r--r-- 9.2k vakarve 16 Aug 10:24 AGENTS.md
+.rw-r--r--  31k vakarve 16 Aug 10:27 SPEC.md
+$ ls -la /home/vakarve/project/kamishibai/.claude/research/
+.rw-r--r-- 16k vakarve 16 Aug 10:25 tsanger-jinkai02-license.md
+$ grep -n '不隨包散布|NO-GO' /home/vakarve/project/kamishibai/SPEC.md
+307:- TsangerJinKai02 **不隨包散布**（授權查證 NO-GO：官方免費白名單不含今楷家族、name table 明文要求書面許可）…
+548:**Verification task（S1 前）——已完成（2026-08-16）**：TsangerJinKai02 再散布授權查證結果 **NO-GO**…
+$ find /home/vakarve/project/kamishibai -path '*/node_modules' -prune -o -type f \( -name '*.ttf' -o -name '*.otf' -o -name '*.woff' -o -name '*.woff2' \) -print | wc -l
+0
+$ ls -1 /home/vakarve/project/kamishibai/.strategic-advance/
+kamishibai-sdk-v1
+
+═══ 批次 D ── 2026-08-16T19:46:16+0800（交接時點複探，供 handoff 三筆蓋章） ═══
+$ git -C /home/vakarve/project/kamishibai status --short
+（空輸出＝追蹤樹乾淨）
+$ cat .git/refs/heads/main ; cat .git/refs/remotes/origin/main
+3867e219381c6297dd226f6bc7a51963669d6f07
+3867e219381c6297dd226f6bc7a51963669d6f07
+$ sed -n '2p' CONTRACT.md
+> STATUS: sealed（2026-08-16）…
+
+═══ 不可及／未探測面（誠實記錄） ═══
+- ~/.claude/baransu/telemetry/kamishibai/seal-log-2026-08.jsonl：戰役根外，依範圍釘定不予探測。
+  F1 出場改以根內證據（CONTRACT.md:2 蓋章＋封緘 commit 已推送）成立，未依賴 seal-log。
+- 「52 測試綠」：需執行 npm test，不在探測授權面內；本輪僅探到 10 支 A1–A10 測試檔存在，
+  測試筆數與綠燈狀態留為情報，未升為證據。
+- ~/.kamishibai/ 中央產物庫：戰役根外，vc2 與 F2 mutationScope 的中央庫回復性皆不可探測。
+- npm registry（@kamishibai org 是否註冊）：不可及維度，operator 供給之截圖證據已逾期且不可續押。

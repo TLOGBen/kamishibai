@@ -1,13 +1,15 @@
-import { join } from 'node:path'
 import { readSource } from '../../delivery/read.js'
-import { writeArtifact } from '../../delivery/write.js'
 import { parseMarkdown, parseBlockTree } from '../../parser/index.js'
 import { resolveCreatedAt } from '../../core/ir.js'
 import { renderArtifact } from '../../render/index.js'
-import { EXIT } from '../../core/errors.js'
+import { deliver } from '../deliver.js'
 
 /**
- * `kamishibai render <input> [-o out.html]`
+ * `kamishibai render <input> [-o out.html] [--project name]`
+ *
+ * Renders, archives the canonical copy into the central store, and writes the
+ * delivery copy — the two are byte-identical by construction (CONTRACT B3).
+ *
  * @returns {Promise<{result: object, exitCode: number}>}
  */
 export async function renderCommand(inputSpec, options = {}, env = process.env) {
@@ -21,8 +23,5 @@ export async function renderCommand(inputSpec, options = {}, env = process.env) 
     generator: options.generator,
   })
 
-  const outPath = options.out ?? join('out', `${slug}.html`)
-  const { path, bytes } = writeArtifact(outPath, html)
-
-  return { result: { ok: true, artifact: path, bytes }, exitCode: EXIT.OK }
+  return deliver({ html, slug, options, env })
 }

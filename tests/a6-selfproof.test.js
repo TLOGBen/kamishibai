@@ -3,7 +3,7 @@ import { execSync } from 'node:child_process'
 import { join } from 'node:path'
 import Ajv2020Module from 'ajv/dist/2020.js'
 import { describe, it, expect } from 'vitest'
-import { runCli, outDir, extractIrScripts, cliPath, repoRoot } from './helpers.js'
+import { runCli, outDir, extractIrScripts, cliPath, repoRoot, cliEnv } from './helpers.js'
 
 const Ajv2020 = Ajv2020Module.default ?? Ajv2020Module
 const OUT_DIR = outDir('a6')
@@ -42,7 +42,7 @@ describe('A6 防試錯自證', () => {
     const node = process.execPath
     execSync(
       `"${node}" "${cliPath}" example doc | "${node}" "${cliPath}" render - -o "${target}"`,
-      { cwd: repoRoot, stdio: 'pipe' },
+      { cwd: repoRoot, stdio: 'pipe', env: cliEnv() },
     )
     expect(existsSync(target)).toBe(true)
     expect(extractIrScripts(readFileSync(target, 'utf8'))).toHaveLength(1)
@@ -69,7 +69,7 @@ describe('A6 防試錯自證', () => {
     execSync(`cat "${bigInput}" | "${node}" "${cliPath}" render - -o "${viaPipe}"`, {
       cwd: repoRoot,
       stdio: 'pipe',
-      env: { ...process.env, ...PINNED },
+      env: cliEnv(PINNED),
     })
 
     // 位元相等才抓得到「靜默截斷」——被截斷的管線讀取一樣 exit 0、一樣有合法 IR
@@ -109,7 +109,7 @@ describe('A6 防試錯自證', () => {
     execSync(`"${node}" "${writer}" "${payload}" | "${node}" "${cliPath}" render - -o "${viaStall}"`, {
       cwd: repoRoot,
       stdio: 'pipe',
-      env: { ...process.env, ...PINNED },
+      env: cliEnv(PINNED),
     })
 
     expect(readFileSync(viaStall)).toEqual(readFileSync(viaFile))

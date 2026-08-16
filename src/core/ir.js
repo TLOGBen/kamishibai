@@ -17,6 +17,32 @@ export function resolveCreatedAt(env = {}, now = () => new Date()) {
 }
 
 /**
+ * Timestamp for a replay. A pinned `KAMISHIBAI_BUILD_TIME` still wins, but the
+ * fallback is the *original* artifact's `createdAt` rather than "now": replay
+ * reproduces a document from its own embedded record, so an unpinned replay
+ * that stamped the current clock would silently break byte-identity (B6).
+ */
+export function replayCreatedAt(env = {}, ir = {}) {
+  const pinned = env[BUILD_TIME_ENV]
+  if (typeof pinned === 'string' && pinned.trim().length > 0) return pinned.trim()
+  if (typeof ir.createdAt === 'string' && ir.createdAt.length > 0) return ir.createdAt
+  return resolveCreatedAt(env)
+}
+
+/** `<namespace>/<name>` — the template key an IR envelope was rendered with. */
+export function templateKeyOf(ir) {
+  const t = ir?.template
+  if (!t || typeof t.namespace !== 'string' || typeof t.name !== 'string') return undefined
+  return `${t.namespace}/${t.name}`
+}
+
+/** `<namespace>/<name>@<version>` — the display form used by `list`. */
+export function templateLabelOf(ir) {
+  const key = templateKeyOf(ir)
+  return key === undefined ? '' : `${key}@${ir.template.version}`
+}
+
+/**
  * Assemble the embedded IR envelope (SPEC §7.3). Key order is fixed so that
  * JSON.stringify output is stable.
  */
