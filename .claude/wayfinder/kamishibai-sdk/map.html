@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wayfinder 共識地圖</title>
+<style>
+  :root{
+    --sea:#101C26; --panel:#17283420; --card:#16242F; --line:#24384633;
+    --ink:#E8EDF2; --muted:#8FA3B0; --faint:#5C7280;
+    --beacon:#FFB454; --charted:#4FD6BE; --claimed:#7FB8E8; --blocked:#46606F;
+    --serif:Georgia,'Times New Roman',serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+  body{
+    background:var(--sea);color:var(--ink);
+    font:15px/1.65 var(--serif);
+    background-image:
+      radial-gradient(1100px 500px at 85% -10%, #1B3040 0%, transparent 60%),
+      repeating-linear-gradient(0deg, transparent 0 59px, #FFFFFF06 59px 60px),
+      repeating-linear-gradient(90deg, transparent 0 59px, #FFFFFF06 59px 60px);
+    min-height:100vh;
+  }
+  .wrap{max-width:1060px;margin:0 auto;padding:48px 28px 96px}
+  .eyebrow{font:11px/1 var(--mono);letter-spacing:.28em;text-transform:uppercase;color:var(--faint)}
+  header .eyebrow{color:var(--beacon)}
+  h1{font-size:34px;font-weight:400;letter-spacing:.01em;margin:10px 0 6px}
+  .dest{border-left:2px solid var(--beacon);padding:6px 0 6px 18px;margin:22px 0 8px;font-size:18px;font-style:italic;color:var(--ink)}
+  .meta{font:12px var(--mono);color:var(--muted);margin-top:10px}
+
+  section{margin-top:52px}
+  h2{font-size:13px;font-weight:400;font-family:var(--mono);letter-spacing:.24em;text-transform:uppercase;color:var(--muted);
+     display:flex;align-items:center;gap:14px;margin-bottom:20px}
+  h2::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,#2E4656,transparent)}
+
+  /* chart */
+  .chart{position:relative;border:1px solid #223644;border-radius:6px;background:#0C161E;overflow-x:auto}
+  .chart svg{display:block;min-width:640px}
+  .edge{stroke:#33505F;stroke-width:1.2;fill:none}
+  .edge.dest-edge{stroke-dasharray:4 5;stroke:#3B5A54}
+  .node{cursor:pointer}
+  .node rect{fill:#132430;stroke:var(--blocked);stroke-width:1.2;rx:7}
+  .node text{font:11px var(--mono);fill:var(--muted)}
+  .node .nid{font-size:12px;fill:var(--ink)}
+  .node.frontier rect{stroke:var(--beacon);fill:#211C10}
+  .node.frontier .halo{fill:var(--beacon);opacity:.14;animation:pulse 2.6s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.10}50%{opacity:.26}}
+  .node.resolved rect{stroke:var(--charted);fill:#0F211F}
+  .node.resolved .nid{fill:var(--charted)}
+  .node.claimed rect{stroke:var(--claimed)}
+  .node.dim,.edge.dim{opacity:.18}
+  .node.lit rect{stroke-width:2}
+  .edge.lit{stroke:var(--beacon);opacity:1}
+  .destflag text{font:12px var(--serif);font-style:italic;fill:var(--beacon)}
+  .destflag path{fill:var(--beacon)}
+  .fogveil{pointer-events:none}
+  .chart-cap{font:11px var(--mono);color:var(--faint);padding:10px 14px;border-top:1px solid #1B2C38;display:flex;gap:18px;flex-wrap:wrap}
+  .chart-cap b{font-weight:400}
+  .k{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:baseline}
+
+  /* filters + cards */
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+  .chip{font:11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
+        background:none;border:1px solid #2A4150;border-radius:99px;padding:5px 13px;cursor:pointer}
+  .chip[aria-pressed="true"]{color:var(--sea);background:var(--ink);border-color:var(--ink)}
+  .chip:focus-visible,.node:focus-visible rect,summary:focus-visible,a:focus-visible{outline:2px solid var(--beacon);outline-offset:2px}
+  .cards{display:grid;gap:10px}
+  details.card{background:var(--card);border:1px solid #223644;border-left-width:3px;border-radius:5px}
+  details.card[data-s="frontier"]{border-left-color:var(--beacon)}
+  details.card[data-s="resolved"]{border-left-color:var(--charted)}
+  details.card[data-s="claimed"]{border-left-color:var(--claimed)}
+  details.card[data-s="blocked"]{border-left-color:var(--blocked)}
+  summary{list-style:none;display:flex;gap:14px;align-items:baseline;padding:13px 18px;cursor:pointer;flex-wrap:wrap}
+  summary::-webkit-details-marker{display:none}
+  .tid{font:12px var(--mono);color:var(--faint);min-width:2.2em}
+  .ttitle{font-size:16px;flex:1;min-width:200px}
+  .badge{font:10px var(--mono);letter-spacing:.14em;text-transform:uppercase;padding:2px 9px;border-radius:3px;border:1px solid}
+  .badge.s-frontier{color:var(--beacon);border-color:var(--beacon)}
+  .badge.s-resolved{color:var(--charted);border-color:var(--charted)}
+  .badge.s-claimed{color:var(--claimed);border-color:var(--claimed)}
+  .badge.s-blocked{color:var(--blocked);border-color:var(--blocked)}
+  .badge.t{color:var(--faint);border-color:#2A4150}
+  .card-body{padding:2px 18px 18px;border-top:1px solid #1D303C;color:#C7D3DC}
+  .card-body h4{font:11px var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--faint);margin:16px 0 6px}
+  .card-body p{margin:8px 0}
+  .card-body code{font:.85em var(--mono);background:#0C161E;padding:1px 6px;border-radius:3px}
+  .card-body a,li a,.dest a{color:var(--charted)}
+  .blockline{font:11px var(--mono);color:var(--faint)}
+
+  /* map sections */
+  .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:28px}
+  ul.plain{list-style:none;display:grid;gap:10px}
+  ul.plain li{padding-left:16px;position:relative;color:#C7D3DC}
+  ul.plain li::before{content:"—";position:absolute;left:0;color:var(--faint)}
+  .fogbox{position:relative;border:1px dashed #33505F;border-radius:6px;padding:20px 22px;overflow:hidden}
+  .fogbox::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(105deg,transparent 30%,#8FA3B012 60%,#8FA3B022 100%)}
+  .oos li{color:var(--faint)}
+  .oos li::before{content:"✕";font-family:var(--mono);font-size:11px}
+  footer{margin-top:70px;font:11px var(--mono);color:#41566417;color:var(--faint);opacity:.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Wayfinder · 共識地圖</div>
+    <h1 id="effort-name"></h1>
+    <div class="dest" id="destination"></div>
+    <div class="meta" id="meta"></div>
+  </header>
+
+  <section aria-label="決策路線圖">
+    <h2>決策路線圖</h2>
+    <div class="chart">
+      <svg id="graph" role="img" aria-label="票券阻擋關係圖"></svg>
+      <div class="chart-cap">
+        <b><span class="k" style="background:var(--beacon)"></span>前線 — 現在可處理</b>
+        <b><span class="k" style="background:var(--claimed)"></span>已認領</b>
+        <b><span class="k" style="background:var(--charted)"></span>已解決</b>
+        <b><span class="k" style="background:var(--blocked)"></span>受阻</b>
+        <b style="margin-left:auto">滑過：標亮依賴鏈 · 點擊：開啟票券</b>
+      </div>
+    </div>
+  </section>
+
+  <section aria-label="決策票券">
+    <h2>決策票券</h2>
+    <div class="chips" id="chips" role="group" aria-label="依狀態篩選"></div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section>
+    <h2>目前已定案</h2>
+    <ul class="plain" id="decisions"></ul>
+  </section>
+
+  <section class="cols">
+    <div>
+      <h2>尚未釐清</h2>
+      <div class="fogbox"><ul class="plain" id="fog"></ul></div>
+    </div>
+    <div>
+      <h2>範圍外</h2>
+      <ul class="plain oos" id="oos"></ul>
+    </div>
+  </section>
+
+  <footer id="foot"></footer>
+</div>
+
+<script>
+const DATA = {"effort": "kamishibai — Agent 專用呈現 SDK", "destination": "一份足以直接動工的 kamishibai SDK 規格：模板語言／初始化方案、持久化系統、渲染引擎、遞送層的架構與 API 形狀均已決定，並附各既有 skill（baransu book／design／write／think、common-dev wayfinder／strategic-advance）的遷移策略。實作本身不在地圖內——規格定案後交由 /contract → 實作 → /seal 分片執行。", "notes": ["**定位**：一開始就設計成可公開發佈的通用 Agent Presentation SDK（repo: https://github.com/TLOGBen/kamishibai ）；baransu 與 common-dev 兩個 plugin 是第一批客戶。", "**邊界（02 已定案）**：「內容怎麼來」歸 skill（合成不進 SDK）；「模板怎麼定義、存在哪、怎麼渲染、怎麼送達」全歸 SDK。design 轉型為模板作者（在 SDK 持久化系統中建立標準模板），book 等轉型為模板消費者；且 design、book 兩個 skill 日後歸屬 kamishibai 專案而非 baransu。", "**常設原則——臨摹即完備性判準（2026-08-16 使用者定調）**：模板語言的表達力目標是「能敘述任意圖片、文字與網站」；凡臨摹不出來的，就是模板語言漏考量的東西。每次臨摹失敗＝模板 spec 的 bug report；block 詞彙表是由失敗案例驅動演化的開放集，非封閉清單。演化走三級管線：島嶼＋intent → slot-report 遙測聚類 → plugin（歷史島嶼為 fixtures）→ 用量達標轉正入核心（詳見 11 增補；配套詞彙演化審查 skill）。", "**統一風格願景**：wayfinder 地圖、strategic-advance 沙盤等資料視圖，未來同樣改用同一風格模板家族、透過 SDK 呈現——不再各自維護獨立配色與 renderer（現況為三套互不相干的主題系統）。", "**命名血緣**：baransu（バランス）→ Kami 主題 → kamishibai（紙芝居）。", "**Ecosystem routing**：session 內 baransu 套件可用——grilling 票可配 /baransu:think 結構化判斷；research 產物可用 /baransu:read、/baransu:learn 落檔；規格成形後可用 /baransu:review 做二次意見。HTML 檢視語言維持 zh-TW 預設。", "**環境**：zsh、node 走 nvm（非互動 context 包 `zsh -lic`）。"], "decisions": ["[專案命名](issues/01-naming.md) — 定名 **kamishibai**（紙芝居），repo 已建於 TLOGBen/kamishibai；沿 baransu／Kami 命名血緣。", "[SDK 邊界定案](issues/02-sdk-boundary.md) — 渲染＋遞送＋模板系統＋持久化歸 SDK，內容合成歸 skill；design＝模板作者、book＝模板消費者，且兩者日後歸屬 kamishibai 專案而非 baransu。", "[現況盤點：兩 plugin 的 HTML 產出機制](issues/07-inventory.md) — 今日共 10 套獨立 renderer、3 套互不相干主題系統、6 套品質閘門；重複集中在模板／主題／骨架／遞送／在地化／閘門六面向，佐證 SDK 假設。", "[雙模式決策](issues/05-dual-mode.md) — 定案單一管線「一切皆內容＋模板」：模型著作結構化 IR、SDK 確定性渲染、raw 島嶼逃生艙保表現力；歷史產物可隨主題重繪。產物須能單獨生存，規格另立 10 號票。", "[模板語言／初始化方案選型](issues/03-template-language.md) — IR 雙入口（Markdown 超集糖衣＋canonical JSON block tree）；模板棧定為 Vue3 + Vite SSG + singlefile 內聯單檔（Nuxt 不採用），Tailwind 架在 CSS 變數 token 上；新模板走模板包規格＋init/lint 腳手架（含 fork 捷徑）。CLI 須附 help/example 防試錯。", "[產物規格：單獨生存的輸出物](issues/10-artifact-spec.md) — 字體 build 時子集化；IR 隨產物內嵌為必要項（自帶原稿、隨時可重繪）；HTML 唯一一等公民且內建播放／演講模式，PDF/PPTX 為匯出附屬；軟上限 10MB／硬上限 16MB 皆可覆寫、零外部請求、evergreen 瀏覽器。", "[持久化系統形態](issues/04-persistence.md) — SDK 擁有獨立中央儲存庫（user scope 專屬目錄、具名專案／分組組織）＋出廠內建模板層；版本就地演進、保留近 N 版供退版比對；調用 key＝`namespace/name@version`，第三方模板包走 npm 分發。", "[技術形態／runtime](issues/06-runtime-form.md) — node library core＋CLI 薄殼＋MCP 殼（CLI 先行）；v1 指令面含 render/serve/replay/export/snapshot/lint/import-template/config/debug/setup 等全表；`--json` 全指令支援、錯誤指到 block 路徑、冪等、dry-run；模板包描述檔候選 TOML。", "[IR block 詞彙與模板包 manifest 細部規格](issues/11-ir-vocabulary-spec.md) — v1 詞彙表 17 種 block（含 video：embedded＋remote 帶 poster 離線降級）；TOML manifest 七區段；島嶼柵欄 20% 軟上限＋禁 script；IR 內嵌欄位定案；互動元件 v1 五件組；儲存庫 `~/.kamishibai/`、N=3。", "[遷移順序與策略](issues/08-migration-strategy.md) — book 為第一驗證客戶（S1 前置其地基）；雙軌逐個切、舊設施退役綁客戶；clean arch 分層＋單檔 <800 行硬約束；kamishibai 兼作 Claude Code plugin、baransu 留薄 stub 一版即刪；九片 S1–S9 各走 /contract→/seal；design 轉型含「臨摹」（圖片/文字/畫面→暫存模板）；戰略推進留作停滯時的升級指揮層。", "[UI 模式：給人使用的通道](issues/12-human-ui-mode.md) — 唯讀管理台＋換皮試穿（不做編輯）；`kamishibai ui` 本地 web UI；檔案唯一真源。附帶定案：中央產物庫 `~/.kamishibai/artifacts/<專案>/` 為正本、老地方為投遞副本；open 三通道＋統一跨平台開啟鏈；`list` 依「--project → `.kamishibai.toml` 錨點 → git root → cwd」四層解析當前專案（非 git 專案靠錨點檔）、`--json` 供 Agent 查詢；隨附產物管理輔助 skill（歸 08）。增補（v1）：留言迭代迴路——serve/ui 點 block 留言、錨定 block id 寫入 `<產物>.comments.jsonl`、Agent 以 `comments` 指令讀取修改後標 resolved；唯讀與檔案真源原則不破。", "[公開發佈包裝](issues/09-public-packaging.md) — MIT；套件名先試 `@kamishibai/sdk`、保底 `kamishibai-sdk`（裸名已被佔，已實查）；Kami 家族為出廠預設、zh-TW 預設可換；TsangerJinKai02 再散布授權列 S1 前查證項（否則退 Noto Serif TC）；semver 0.x 起步、S3 升 1.0；文件含 schema 自動生成的 block reference 與 AGENTS.md。"], "fog": [], "outOfScope": ["**SDK 的實作本身**——地圖終點是可動工規格（含遷移策略）；寫 code 是地圖之後的事。", "**各 skill 的內容合成核心**（book 的 Synthesize、slide 切頁、design 的引導流程）——依 02 定案不納入 SDK。"], "tickets": [{"id": "01", "title": "專案命名", "type": "grilling", "status": "resolved", "blockedBy": [], "question": "這個 Agent 專用呈現 SDK 專案要叫什麼名字？需能承接既有命名血緣（baransu／Kami 主題），且適合日後公開發佈。", "answer": "定名 **kamishibai**（紙芝居）——日本街頭說書以圖卡逐張呈現故事的技藝，與「把內容做成可呈現畫面」的本業直接對應，並與 Kami 主題血緣相連。候選 hyousou（表装）、butai（舞台）、utsuwa（器）皆落選。\n\nRepo 已建立：https://github.com/TLOGBen/kamishibai （2026-08-16，Initial commit）。", "comments": "- 使用者於 grilling Round 1 以「Q4 推薦就好」拍板，並隨即自行開設 GitHub repo。", "file": "issues/01-naming.md"}, {"id": "02", "title": "SDK 邊界定案", "type": "grilling", "status": "resolved", "blockedBy": [], "question": "SDK 管到哪為止？目前的候選刀口（源自使用者描述的願景）：**渲染＋遞送＋模板系統＋持久化**——即「內容怎麼來」歸 skill，「模板怎麼定義、存在哪、怎麼渲染、怎麼送達」全歸 SDK；design 轉型為模板作者（在 SDK 持久化系統建立標準模板），book 等轉型為模板消費者。\n\n待確認：\n1. 這個刀口的翻譯是否準確反映使用者想像？\n2. 「遞送」（開瀏覽器、SendUserFile、落檔路徑慣例）確定進 SDK？\n3. 內容合成（book Synthesize、slide 切頁）確定不進？", "answer": "使用者確認刀口：**渲染＋遞送＋模板系統＋持久化歸 SDK；內容合成歸 skill**。design 轉型為模板作者（在 SDK 持久化系統建立標準模板），book 等轉型為模板消費者。\n\n追加決定（超出原問題範圍但由使用者明示）：**design 與 book 兩個 skill 日後歸屬 kamishibai 專案，而非留在 baransu**——kamishibai 不只是 SDK 函式庫，也是這些呈現類 skill 的新家。此決定的包裝細節（kamishibai 是否同時作為 plugin 發佈）由遷移票（08）與發佈票（09）承接。", "comments": "- 2026-08-16 使用者於 charting session 以「對，所以在這個操作底下 design 和 book 以後會歸在這個專案而非 baransu」確認並擴充。", "file": "issues/02-sdk-boundary.md"}, {"id": "03", "title": "模板語言／初始化方案選型", "type": "grilling", "status": "resolved", "blockedBy": ["02", "07"], "question": "skill（或任何 Agent）對 SDK 說話的正式介面長什麼樣？候選方向：既有模板語言（Handlebars／Nunjucks 類）、結構化資料＋schema（JSON/YAML doc model）、Markdown 超集＋指令、或自訂 DSL。需同時回答「初始化方案」——一個新模板從無到有如何被建立（design 的新職責）。選型需以 07 盤點出的實際內容形態（book 章節、slide、報告、工作日誌、地圖視圖）為證據。", "answer": "三個子決策定案如下（2026-08-16 使用者確認）：\n\n1. **著作面 IR：雙入口、單一 canonical 層**——散文類 skill 寫 Markdown 超集（frontmatter metadata＋fenced 型別 block：```diagram、```raw 島嶼…），SDK 編譯為 canonical JSON block tree；資料類 skill（wayfinder、沙盤）直接產 block tree。驗證與閘門只面對 block tree。**附帶硬需求**：CLI 必須提供 `help`／`example` 類指令，直接輸出合法範例與 schema，讓 Agent 免反覆試錯（轉記 06 技術形態票）。\n2. **模板實作棧：Vue3 + Vite（SSG 模式）+ vite-plugin-singlefile**——模板＝Vue 元件家族＋具名 slot＋token 詞彙＋閘門 manifest；build 時預渲染、全資產內聯成離線單檔 HTML；需互動的視圖將 Vue runtime 一併內聯。**Nuxt 明確不採用**（完整應用框架對渲染管線過重）。樣式層 Tailwind（或 Sass）架在 CSS custom properties 之上——既有 tokens.css 38 名詞彙仍是唯一真源，Tailwind theme 映射到變數。此決策同時解掉 126 個僅差前綴的骨架複製問題（元件化後一個骨架寫一次）。已接受代價：渲染成為 build（每次數秒、需 node/nvm 環境）；PDF/PPTX 鏈對接 SSG 產物。推翻條件：單檔內聯尺寸實測失控時，退到「文件類免 runtime、視圖類帶 runtime」分級打包。\n3. **初始化方案：模板包規格＋腳手架**——SDK 定義模板包目錄格式（manifest＋元件骨架＋tokens＋閘門規則＋範例頁），提供 `init`／`lint` 工具，並支援「從既有模板衍生」起手式；design skill 轉型為「引導設計決策 → 產出合法模板包 → 註冊進持久化系統」。lint 工具收編現有 6 套零散閘門職責。", "comments": "- 2026-08-16 使用者提問「raw 島嶼可否用 slot 或 plugin 解決」，討論結論作為本票素材：兩者互補——**slot**（模板側具名槽位，book 的 `data-slot` 為雛形）定義自訂內容可出現的位置，使島嶼佔比與內容可被閘門量測；**plugin**（渲染器側擴充）把反覆出現的島嶼模式升格為結構化 block 類型（如 book 的 18 種 diagram-types 可做成 diagram plugin，GATE 規則內建於 plugin）。演化路徑：raw 島嶼是起點逃生艙，plugin 讓島嶼逐步轉正；第三方 block plugin 亦是公開 SDK 的擴充點。", "file": "issues/03-template-language.md"}, {"id": "04", "title": "持久化系統形態", "type": "grilling", "status": "resolved", "blockedBy": ["02"], "question": "SDK 內建的模板倉庫怎麼存、存哪、怎麼演進？——標準模板（design 產出）與專案客製模板的存放位置（user scope？project scope？兩層？）、版本化策略（模板改版後既有產出物怎麼辦）、以及查找／解析規則（skill 用什麼 key 調用模板）。", "answer": "三題定案（2026-08-16 使用者確認）：\n\n1. **SDK 擁有獨立的中央儲存庫**——模板不散落在各 repo，住在 kamishibai 自己的儲存位置（user scope 下的專屬目錄），內部以**具名專案／分組**組織（與 baransu 遙測「集中 user scope、按專案分目錄」先例同構）。SDK 另自帶出廠內建模板家族（公開發佈的開箱層）。具體目錄佈局與分組模型屬 11 號票細部。\n2. **版本：就地演進＋保留近幾版**——模板以最新版為正身演進；儲存庫保留最近 N 版供**退版**與**選擇比對**（N 可設定）。已接受的邊界：超出保留窗的歷史版本不可取回，「依原版重繪歷史產物」僅保證近 N 版內；但產物自帶 IR（10 定案），任何時點仍可用現行版模板重繪——樣貌可能不同，內容不失。\n3. **調用 key＝命名空間 id**——`<namespace>/<name>@<version>`（省略版本＝最新；namespace 對映分組）；第三方模板包走 npm 分發（`kamishibai add <pkg>` 裝進中央儲存庫），不自建 registry。", "comments": "", "file": "issues/04-persistence.md"}, {"id": "05", "title": "雙模式決策：一次性著作文件 vs 可重繪資料視圖", "type": "grilling", "status": "resolved", "blockedBy": ["02", "07"], "question": "SDK 的客戶分兩種本質不同的產出：（a）模型一次性「著作」的定稿文件（book、錯字修改表、工作日誌），與（b）資料驅動、每次狀態變更就重繪的視圖（wayfinder 地圖、strategic-advance 沙盤——帶 --language 等確定性參數）。SDK 要以單一抽象同時吃下兩種，還是明確分成兩個模式／兩組 API？哪一種是第一公民？", "answer": "選 **A：單一管線「一切皆內容＋模板」**。模型不再著作 HTML，而是著作結構化內容 IR（帶 schema 的區塊樹）；渲染一律由 SDK 確定性完成。為保住 book 級表現力，IR 保留「raw 島嶼」逃生艙——模型可在特定槽位嵌入自寫 HTML/SVG 區塊，且島嶼佔比可被品質閘門量測。紅利：著作文件與資料視圖同樣可重繪，主題改版時歷史產物可一鍵換皮；品質閘門可統一驗 IR。已接受的邊界：所有既有 skill 都需改產 IR，遷移工程量最重（由 08 遷移票承擔）。\n\n追加需求（使用者於結案時提出）：承接 book「把輸出帶去任何地方、像真實書本」的原始意象，**SDK 產物必須能單獨生存**——自包含、離線可開、不依賴 SDK 存在。產物規格獨立成票：[產物規格：單獨生存的輸出物](10-artifact-spec.md)。", "comments": "- 2026-08-16 使用者定調：wayfinder 與 strategic-advance 的視圖未來「都是用同一風格模板的產物，透過 SDK 來做呈現」——即資料視圖模式確定在範圍內，且與著作文件共用同一模板／主題家族。本票剩下的核心是 API 怎麼切，而非要不要支援。", "file": "issues/05-dual-mode.md"}, {"id": "06", "title": "技術形態／runtime", "type": "grilling", "status": "resolved", "blockedBy": ["03", "05"], "question": "SDK 以什麼形態存在讓 Agent 最好用？候選：CLI 工具（skill 用 Bash 調用，最貼近現有 render_map.py 模式）、node/python library、MCP server、或混合（CLI 為主＋可嵌入 lib）。需考量：公開發佈的安裝體驗、WSL2＋nvm 環境慣例、無網路依賴的自包含 HTML 輸出、以及「Agent 好用」的介面設計（錯誤訊息、冪等重繪、dry-run）。", "answer": "三題定案（2026-08-16 使用者確認）：\n\n1. **介面形態＝A＋C：node library core＋CLI 薄殼＋MCP server 殼**——核心是可嵌入 library（程式化客戶直接 import）；CLI 是 Agent 主通道；MCP server 是同一套 lib API 的再包裝，列入範圍。排序建議：CLI 先行，MCP 殼隨後（公開 SDK 的開箱體驗不得依賴 MCP 設定）。UI 通道另由 12 號票決議。\n\n2. **v1 CLI 指令面**：\n   - `render <input>` — IR／Markdown 超集 → 單檔產物\n   - `serve <input>` / `close` — dev server＋HMR 起停\n   - `replay <artifact>` — 從產物內嵌 IR 重繪（換模板／升版／換皮）\n   - `export <artifact> --to pdf|pptx` — 匯出附屬格式\n   - `snapshot <target>` — 截圖產物／serve 畫面，讓 Agent（與人）即時看視覺效果\n   - `init` / `fork <template>` — 模板包腳手架（含衍生起手式）\n   - `import-template <zip|dir|url>` / `export-template` — 模板匯入（多來源，依 `.toml` 專案描述檔識別）／打包分享\n   - `lint <target>` — 驗模板包或產物（收編既有六套閘門）\n   - `add <pkg>` / `store list|rollback` — npm 模板包安裝／中央儲存庫管理（分組、退版）\n   - `example <block|template>` / `schema` / `help` — 防試錯通道\n   - `comments <artifact>` — 列出產物留言（block id 錨定，`--json`；依 12 增補之留言迭代迴路，2026-08-16 追加）\n   - `config set|get|remove|list` — 設定管理（remove＝回預設）\n   - `debug` — 診斷（環境、依賴、模板解析過程）\n   - `setup` — 初始化環境（建中央儲存庫、裝渲染依賴如 Playwright）\n   - `ui` — 等 12 號票決議後補掛\n\n3. **Agent 好用語意**：全指令支援 `--json`（成功與失敗皆機器可讀），視需求加 `--yaml`；驗證錯誤指到 block tree 路徑而非 HTML 行號；exit code 穩定分類；`render`/`replay` 冪等；`--dry-run` 只驗不寫。安裝：npm 發佈、`npx kamishibai` 免安裝可用；WSL＋nvm 的 `zsh -lic` 慣例入文件。\n\n**附帶定案**：模板包專案描述檔格式候選定為 **TOML**（隨 import-template 決議，細部欄位歸 11 號票）。", "comments": "- 2026-08-16 依 03 定案更新前提：實作棧已定為 Vue3 + Vite SSG + vite-plugin-singlefile（node 生態），故本票收斂為 node CLI 的具體形狀。**硬需求（使用者指定）**：CLI 須有 `help`／`example` 類指令，直接輸出合法 IR 範例與 schema，讓 Agent 免反覆試錯。\n- 2026-08-16 **硬需求二（使用者指定）**：遞送層須有雙伺服模式——`serve`/watch 模式（Vite dev server＋HMR，資料視圖隨來源檔變更即時熱更新，消滅「重繪後手動重新整理」流程）與 `export` 模式（離線單檔產物，規格依 10 號票）。兩模式共用同一套元件渲染。", "file": "issues/06-runtime-form.md"}, {"id": "07", "title": "現況盤點：兩 plugin 的 HTML 產出機制", "type": "research", "status": "resolved", "blockedBy": [], "question": "baransu 與 common-dev 兩個 plugin 中，所有會產出 HTML／視覺 artifact 的 skill 現況：各自產什麼、怎麼產（ad-hoc 著作／模板驅動／腳本驅動）、引用什麼主題與共用設施（output-journal 契約、golden-template、render_map.py），以及跨 skill 的重複度評估（主題 CSS、HTML 骨架、SVG 慣例、開瀏覽器／送檔處理、zh-TW chrome、品質閘門）。今日存在的獨立 renderer 共幾套？\n\n（探勘 subagent 已於 charting session 派出，結果回報後記入 Answer。）", "answer": "完整報告見 [research/07-inventory-report.md](../research/07-inventory-report.md)。關鍵事實：\n\n- 今日共存在 **10 套獨立 renderer**（腳本驅動 2：wayfinder render_map.py 208 行、strategic-advance strategic_state.py 5322 行；模板驅動模型填充 2：book 長文＋slides；規格驅動無模板 2：DESIGN.html、工作日誌；純 ad-hoc 4：錯字修改表、prototype、delegate impl.html、evolve convergence.svg）。\n- **3 套互不相干的主題系統**：Kami 38-token 詞彙、wayfinder 航海配色、strategic-advance 軍事 HUD——零位元組共用；Kami 內部又有 126 個僅差 class 前綴的骨架複製。\n- **HTML 骨架有 5 種不相干產生方式**；開瀏覽器有 2 個 fallback 鏈不同的近似函式＋baransu 的 SendUserFile 第三路；zh-TW 在地化有 2 套機制相反的實作（渲染前 token 替換 vs 渲染後 85 對字串替換）。\n- **品質閘門 6 套、4 種語言**，規則彼此重述且單位不一致；map.html／sand-table.html／錯字表／工作日誌／prototype／impl.html **完全無閘門覆蓋**。\n- 唯一既有共用設施：`_shared/output-journal.md`（97 行契約，僅為規格參照、無機制）與 `_shared/scripts/color_distance.py`。\n- 佐證 SDK 假設：重複確實集中在「模板／主題／骨架／遞送／在地化／閘門」六個面向，而各 skill 的內容合成彼此獨立。", "comments": "", "file": "issues/07-inventory.md"}, {"id": "08", "title": "遷移順序與策略", "type": "grilling", "status": "resolved", "blockedBy": ["04", "06"], "question": "規格定案後，既有 skill 依什麼順序遷移到 kamishibai？誰當第一個驗證客戶（book？wayfinder 地圖？）、遷移期間新舊機制如何並存、baransu golden-template 與 render_map.py 何時退役、以及每片遷移的 /contract → /seal 切法。\n\n另依 02 追加決定：design 與 book 整個 skill 要「搬家」到 kamishibai 專案——需決定搬遷機制（kamishibai 是否同時作為 Claude Code plugin 發佈、baransu 端如何退場或轉發、marketplace 相容性）。\n\n另依 12 定案：kamishibai plugin 層還須新增**產物管理輔助 skill**（教 Agent list／open／replay 慣用流程），與 design/book 同住；本票一併規劃其建置順位。", "answer": "定案（2026-08-16 使用者確認）：\n\n1. **第一個驗證客戶＝book**（使用者最常用、回饋迴路最密）。後果：S1 核心脊椎前置 book 所需地基（Markdown 超集編譯、raw 島嶼、基本閘門），wayfinder 後移。\n2. **新舊並存＝雙軌逐個切**——每個 skill 遷完即刪舊機制，未遷者照舊；舊設施退役綁客戶：golden-template 三兄弟＋126 骨架隨 book＋design 遷完退役、render_map.py 隨 wayfinder、strategic_state.py 的 HTML 部分隨沙盤。**硬約束（使用者指定）**：SDK 程式碼依 clean architecture 分層（parser／core／render／delivery／CLI 殼獨立模組）、單檔 <800 行，明文禁止 5k 行大單檔重演。\n3. **搬家機制**：kamishibai 同時作為 Claude Code plugin 發佈（`.claude-plugin/`＋skills：design、book、產物管理輔助 skill、詞彙演化審查 skill——後者依 11 增補）；baransu 下個 major 移除 book/design，過渡期留薄提示 stub（僅提示改裝，一個版本週期後刪——目前僅使用者一人使用，過渡負擔低）。marketplace 兩 plugin 並列互不依賴。\n4. **切片表（每片 /contract → 實作 → /seal）**：\n   - S1 核心脊椎：IR schema＋Markdown 超集編譯＋render＋Kami 模板家族 v1（長文）＋CLI 基本盤（render/lint/example/schema）\n   - S2 book 遷移 I：長文路徑（prose／島嶼／figure）＋中央產物庫＋open/list＋replay\n   - S3 book 遷移 II：diagram plugin（18 圖型收編）＋deck/slide＋export pdf/pptx＋snapshot\n   - S4 文件類輕客戶：錯字修改表、工作日誌\n   - S5 遞送層補完：serve/HMR＋close＋config/setup/debug＋**留言迭代迴路**（block id 錨定留言、comments 指令——依 12 增補，v1 納入；初版驗證戰役範圍因此為 S1–S5＋design 最小段）\n   - S6 視圖客戶：wayfinder 地圖＋沙盤遷移，render_map.py／strategic_state.py HTML 退役\n   - S7 design 轉型：init/fork/import-template/export-template＋**臨摹能力**（解析圖片／文字／現成畫面含 CSS+script，逆向重組成暫存模板，入 store 的 draft 命名空間、人確認後轉正——使用者指定新增。**原則**：臨摹即模板語言的完備性判準——凡敘述不出來的即 spec 缺口，失敗案例回饋 block 詞彙演化，詳見地圖 Notes）＋lint 收編六閘門\n   - S8 UI 模式＋換皮試穿\n   - S9 MCP 殼＋npm 公開發佈（銜接 09）\n5. **執行指揮層**：預設每片直接 contract→seal；當出現跨 session 停滯或單 session 飽和，將本地圖 Decisions so far＋切片表交 `/common:strategic-advance` 開戰役——屆時其入場條件自然滿足，現在不預先啟用。", "comments": "", "file": "issues/08-migration-strategy.md"}, {"id": "09", "title": "公開發佈包裝", "type": "grilling", "status": "resolved", "blockedBy": ["06"], "question": "作為一開始就要公開的通用 SDK：發佈到哪（npm？PyPI？GitHub release？）、license、文件與範例的最低標準、私有慣例（Kami 主題、zh-TW chrome、SendUserFile 流程）如何抽成可替換的預設而非硬編碼、以及版本策略（自家兩 plugin 追 SDK 版本的方式）。", "answer": "四題定案（2026-08-16 使用者確認）：\n\n1. **License＝MIT**。\n2. **套件名**：先試註冊 npm org `@kamishibai`（成→`@kamishibai/sdk`，為 mcp／模板包留地址空間）；失敗退 `kamishibai-sdk`（已驗證未被佔用；裸名 `kamishibai` 已被 Re:Earth 影片工具佔走 (verified: `curl registry.npmjs.org/kamishibai` → 200, latest 0.4.0)）。CLI 執行檔一律 `kamishibai`。\n3. **私有慣例抽成預設**：Kami 模板家族作為出廠內建預設（token 全走 CSS 變數）；zh-TW chrome 預設＋`--language`。**Verification task（S1 前）**：TsangerJinKai02 再散布授權查證——npm 內嵌與子集化是否在倉耳免費授權內；否則出廠字體改 Noto Serif TC（OFL），Tsanger 降為使用者自裝層。\n4. **版本與文件**：semver、0.x 起步、book 遷移完（S3）升 1.0；兩 plugin 以 `^` 追版。文件最低標：README quickstart、block reference 由 `schema` 指令自動生成（單一真源）、模板作者指南、**AGENTS.md**（Agent-first SDK 的門面文件）。", "comments": "", "file": "issues/09-public-packaging.md"}, {"id": "10", "title": "產物規格：單獨生存的輸出物", "type": "grilling", "status": "resolved", "blockedBy": [], "question": "承接 book 的原始意象——「把輸出帶去任何地方，就像真實書本一樣」——kamishibai 的產物必須能離開 SDK 單獨生存。這張票定產物的規格：\n\n1. **自包含程度**：CSS/JS 內聯是底線；字體（如 TsangerJinKai02）要不要內嵌（膨脹 vs 離線忠實度）？圖片一律 data URI？\n2. **IR 隨行**：既然核心抽象是「內容 IR＋模板」（05 定案），產物要不要內嵌自己的 IR——一份 HTML 自帶原稿，未來任何時點都能被 SDK 重新換皮／升級？嵌在哪（`<script type=\"application/...\">`？sidecar 檔？）、算不算規格必要項？\n3. **格式家族**：HTML 之外，PDF／PPTX（book 現有）是產物一等公民還是匯出附屬？\n4. **尺寸與相容底線**：單檔上限、離線無網路、無外部資源請求（現有各 renderer 已遵守）、瀏覽器相容範圍。", "answer": "四題定案（2026-08-16 使用者確認）：\n\n1. **字體：build 時子集化**——渲染時掃描產物實際用字、只嵌用到的字形（中文長文約數百 KB），缺字退系統字型堆疊。\n2. **IR 隨產物內嵌，為規格必要項**——canonical block tree＋模板 id＋版本以 `<script type=\"application/json\">` 藏進 HTML。每份產物自帶原稿，任何時點可被 SDK 重新換皮／升級／轉格式，不依賴原始檔案存續。\n3. **HTML 是唯一一等公民；PDF／PPTX 為匯出附屬**（由轉換器自 HTML 派生，不承諾 IR 隨行）。**追加（使用者指定）：HTML 產物須內建「播放能力」**——演講／簡報模式（全螢幕、鍵盤翻頁等）直接活在單檔產物內，簡報的本體是 HTML 而非 PPTX 原稿。\n4. **尺寸與相容**：單檔軟上限 10MB（CLI 警告並列出肥胖來源）、硬上限 16MB，**兩者皆可設定覆寫**（避免真實個案被上限卡死）；零外部請求（CSP meta 自我驗證）；相容目標 evergreen 瀏覽器。\n\n播放模式的細部（鍵盤配置、講者備註等互動元件詞彙）併入 11 號票。", "comments": "", "file": "issues/10-artifact-spec.md"}, {"id": "11", "title": "IR block 詞彙與模板包 manifest 細部規格", "type": "grilling", "status": "resolved", "blockedBy": ["04", "10"], "question": "03 定了方向（Markdown 超集 → canonical JSON block tree；模板包＝Vue 元件＋slot＋tokens＋閘門 manifest），本票拆細部：\n\n1. **v1 block 詞彙表**：第一版支援哪些 block 類型？（章節／段落／圖表 plugin／raw 島嶼／表格／看板／圖……）以既有產物形態（book 章節、slide、校對表、地圖、沙盤）反推最小集合。\n2. **模板包 manifest 格式**：宣告哪些欄位（支援的 block 類型、slot 對映、token 需求、閘門規則、版本）？（依 06 附帶定案：格式候選為 **TOML**——`.toml` 專案描述檔，隨 import-template 決議。）\n3. **raw 島嶼的柵欄**：島嶼佔比如何量測與設限、島嶼內 SVG 沿用哪些既有 GATE 規則。\n4. **IR 隨產物內嵌的格式**（依 10 號票決議：block tree＋模板 id＋版本，`<script type=\"application/json\">`——本票定欄位細節）。\n5. **互動元件詞彙**：SDK 內建哪些互動元件——**播放／演講模式**（10 號票定為產物硬能力：全螢幕、鍵盤翻頁；細部如講者備註、計時器在此定）、filterable 看板、hover 依賴圖、TOC scrollspy、lightbox 等，哪些進 v1。\n6. **中央儲存庫目錄佈局與分組模型**（依 04 定案：user scope 專屬目錄、具名專案／分組、近 N 版保留——本票定實際佈局、manifest 中的 namespace 欄位、N 的預設值）。", "answer": "六項提案全收＋一項追加（2026-08-16 使用者確認）：\n\n**P1 — v1 block 詞彙表**（進場標準：足以重現五種既有產物）：\n- 結構：`doc`（根，帶 metadata）、`section`（可嵌套章節）\n- 散文：`prose`（Markdown 行內）、`quote`、`callout`（note/warn）、`code`\n- 資料：`table`、`stat`（KPI 磚）、`timeline`、`board`（卡片看板）、`graph`（節點邊圖）、`diagram`（結構化圖表 spec，plugin 承載，book 18 圖型收編起點）\n- 媒體：`figure`（圖片）、`raw`（島嶼，子型 html|svg）、**`video`**（追加）——子型 `embedded`（本地內嵌，體積自負、lint 指出肥胖來源）與 `remote`（YouTube/Vimeo；build 時抓縮圖內嵌 poster，離線／嚴格模式顯示 poster＋連結、連網才載 iframe；manifest 標記「含線上限定 block」，lint 提示非完全離線體——零外部請求鐵律的明碼標價例外）\n- 簡報：`deck`＋`slide`（layout id＋槽位填充）\n\n**P2 — TOML manifest 欄位**：`[template]` name/namespace/version/description/language；`[engine]` SDK 相容區間；`[blocks]` supported；`[slots]` 具名槽位與接受型別；`[tokens]` required；`[gates]` 開關與門檻；`[export]` pdf/pptx。\n\n**P3 — 島嶼柵欄**：佔比軟上限 20%（block 數與字元權重雙指標取高者），超標 lint 警告、可覆寫；島內禁 `<script>`（互動一律走元件）；島內 SVG 沿用既有 GATE 機械項（viewBox 含界、marker 合法、PDF 鏈 rgba 禁令）。\n\n**P4 — IR 內嵌欄位**：`<script type=\"application/kamishibai+json\">` 含 `irVersion`、`engine`、`template {namespace,name,version}`、`doc`（完整 block tree）、`createdAt`、`generator`；`replay` 讀此包即可完整重繪。\n\n**P5 — 互動元件 v1**：播放模式（全螢幕、方向鍵/空白鍵/點擊翻頁、Esc、進度指示、講者備註）、TOC scrollspy、lightbox、board 篩選、graph hover 高亮；計時器、雷射筆等進 v1.x。\n\n**P6 — 儲存庫佈局**：`~/.kamishibai/` 下 `templates/<namespace>/<name>/`（現行版＋`.versions/` 近 N=3 版）、`config.toml`、`cache/`（字型子集等）。", "comments": "", "file": "issues/11-ir-vocabulary-spec.md"}, {"id": "12", "title": "UI 模式：給人使用的通道", "type": "grilling", "status": "resolved", "blockedBy": ["06"], "question": "CLI 是 Agent 的通道；作為給**人**使用的通道，SDK 還要有 UI 模式。這張票定它的範圍與形狀：\n\n1. **涵蓋什麼**：模板瀏覽／預覽（gallery）？產物庫瀏覽？主題切換即時預覽（換皮試穿）？內容編輯？還是只做唯讀的檢視與播放？\n2. **實體形狀**：serve 模式（Vite dev server）上長出的本地 web UI？獨立指令（`kamishibai ui`）？或就是產物本身的內建 chrome（播放模式已是一種人用介面）？\n3. **與 Agent 通道的關係**：人透過 UI 做的操作（選模板、調 token）要不要回寫成 Agent 可讀的狀態（檔案），維持「檔案是唯一真源」？", "answer": "定案（2026-08-16 使用者確認）：\n\n1. **能力範圍＝唯讀管理台＋換皮試穿**——模板 gallery、產物庫瀏覽、換皮試穿（讀產物內嵌 IR 即時切換模板／版本對照預覽）、播放。不做內容編輯（著作歸 Agent 通道，避免雙寫入口）。\n2. **實體形狀＝`kamishibai ui` 指令**起本地 web UI，架在 serve 模式同一套 dev server 基礎設施、同為 Vue 元件（自吃狗糧）。不做 Electron、不做雲端。\n3. **檔案／儲存庫是唯一真源**——UI 的所有操作（選模板、調 config、退版）一律回寫檔案（config.toml、store 狀態），UI 不持有獨立狀態；人與 Agent 永遠透過檔案對話。\n\n**附帶定案：產物的家與開啟方式**（使用者追問後拍板）：\n- **中央產物庫為正本**：`~/.kamishibai/artifacts/<專案名>/…`，與模板庫同構分組；`render` 完成自動歸檔。產物自帶 IR，中央份即永久檔案庫——UI 產物庫、`replay`、試穿皆讀此。\n- **投遞副本**：呼叫端仍可指定輸出路徑（如各 repo `.claude/book/` 老地方），作為交付用副本（SendUserFile、commit、分享）；副本路徑記入索引，刪除標失效，正本不受影響。SendUserFile 屬 Claude harness 工具，由 skill 側呼叫。\n- **開啟三通道**：`kamishibai open <產物|latest>`（統一跨平台開啟鏈 wslview→xdg-open→explorer.exe→webbrowser，一次收編現存兩套分歧 opener）；UI 產物庫點開；產物本身雙擊即開（播放模式內建，10 已保證）。\n- **`kamishibai list`／`store artifacts`**：自動解析當前專案，順序為 ① `--project` 明指 → ② 往上找最近的 `.kamishibai.toml` 專案描述檔（非 git 專案的持久錨點；由 `config set project` 或首次 render 落檔，子目錄執行也解析正確）→ ③ git root 資料夾名 → ④ cwd 資料夾名保底。列出該專案產物（名稱、模板＠版本、時間、generator、副本落點），`--json` 全支援——產物庫成為 Agent 可查詢的「專案呈現史」。（2026-08-16 修訂：使用者指出非 git 專案情境，補 ②錨點層。）\n- **配套需求（使用者指定）**：kamishibai 須隨附**輔助 skill**（與 design/book 同住本專案 plugin 層），教會 Agent 產物查詢／開啟／replay 的慣用流程；實體歸屬轉記 08 遷移票。", "comments": "", "file": "issues/12-human-ui-mode.md"}], "generatedAt": "2026-08-16 02:08 UTC", "source": "/home/vakarve/project/kamishibai/.claude/wayfinder/kamishibai-sdk", "language": "zh-TW", "labels": {"htmlLang": "zh-Hant", "pageTitle": "Wayfinder 共識地圖", "eyebrow": "Wayfinder · 共識地圖", "routeChartAria": "決策路線圖", "routeChart": "決策路線圖", "graphAria": "票券阻擋關係圖", "legendFrontier": "前線 — 現在可處理", "legendClaimed": "已認領", "legendResolved": "已解決", "legendBlocked": "受阻", "legendHint": "滑過：標亮依賴鏈 · 點擊：開啟票券", "ticketsAria": "決策票券", "tickets": "決策票券", "filterAria": "依狀態篩選", "decisions": "目前已定案", "fog": "尚未釐清", "outOfScope": "範圍外", "status": {"frontier": "可處理", "claimed": "已認領", "blocked": "受阻", "resolved": "已解決"}, "type": {"research": "研究", "prototype": "原型", "grilling": "決策釐清", "task": "任務"}, "metaTemplate": "{total} 張票券 — {resolved} 張已解決 · {frontier} 張現在可處理 · {claimed} 張已認領 · {blocked} 張受阻", "generated": "產生時間", "source": "來源", "documentTitle": "Wayfinder 共識地圖", "destination": "目的地", "prerequisite": "前置", "question": "要回答的問題", "answer": "定案", "comments": "補充", "openTicket": "開啟 Markdown 票券", "all": "全部", "empty": "目前沒有內容"}};
+const L = DATA.labels;
+const STATUS_LABEL = L.status;
+const TYPE_LABEL = L.type;
+const format = (template, values) => template.replace(/\{(\w+)\}/g, (_, key) => values[key]);
+
+/* ---------- tiny markdown-lite ---------- */
+const esc = s => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safeUrl = u => {
+  const t = String(u).trim();
+  return /^(https?:|mailto:|#|\/|\.\/|\.\.\/)/i.test(t) ? t.replace(/["'<>]/g, c => ({'"':'&quot;',"'":'&#39;','<':'&lt;','>':'&gt;'}[c])) : '#';
+};
+const md = s => esc(s)
+  .replace(/`([^`]+)`/g,'<code>$1</code>')
+  .replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>')
+  .replace(/\[([^\]]+)\]\(([^)]+)\)/g,(_,txt,url)=>`<a href="${safeUrl(url)}" rel="noreferrer noopener">${txt}</a>`);
+const mdBlock = s => s.trim().split(/\n{2,}/).map(p=>'<p>'+md(p).replace(/\n/g,'<br>')+'</p>').join('');
+
+/* ---------- status ---------- */
+const byId = {}; DATA.tickets.forEach(t=>byId[t.id]=t);
+function status(t){
+  if(t.status==='resolved') return 'resolved';
+  if(t.status==='claimed') return 'claimed';
+  const blocked = t.blockedBy.some(b => byId[b] && byId[b].status!=='resolved');
+  return blocked ? 'blocked' : 'frontier';
+}
+DATA.tickets.forEach(t=>t.s=status(t));
+
+/* ---------- header ---------- */
+document.getElementById('effort-name').textContent = DATA.effort;
+document.getElementById('destination').innerHTML = md(DATA.destination);
+const n = s => DATA.tickets.filter(t=>t.s===s).length;
+document.getElementById('meta').textContent =
+  format(L.metaTemplate,{total:DATA.tickets.length,resolved:n('resolved'),frontier:n('frontier'),claimed:n('claimed'),blocked:n('blocked')});
+document.getElementById('foot').textContent = `${L.generated} ${DATA.generatedAt} · ${L.source}: ${DATA.source}`;
+document.title = `${L.documentTitle} — ${DATA.effort}`;
+
+/* ---------- graph layout: columns by longest blocking depth ---------- */
+const depth = {};
+function d(t){ if(depth[t.id]!=null) return depth[t.id];
+  depth[t.id] = t.blockedBy.length ? 1+Math.max(...t.blockedBy.map(b=>byId[b]?d(byId[b]):0)) : 0;
+  return depth[t.id]; }
+DATA.tickets.forEach(d);
+const maxD = Math.max(0,...Object.values(depth));
+const cols = Array.from({length:maxD+1},()=>[]);
+DATA.tickets.forEach(t=>cols[depth[t.id]].push(t));
+const CW=208, NW=156, NH=44, PAD=46;
+/* CJK glyphs render ~2× a latin cell in monospace — truncate by display width, not char count */
+const cut=(s,max)=>{let u=0,out='';for(const c of s){u+=c.charCodeAt(0)>0x2E7F?2:1;if(u>max)return out+'…';out+=c;}return s;};
+const rows = Math.max(...cols.map(c=>c.length));
+const H = Math.max(230, rows*74+70), W = PAD*2 + (maxD+1)*CW + 150;
+const svg = document.getElementById('graph');
+svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+const pos = {};
+cols.forEach((col,ci)=>col.forEach((t,ri)=>{
+  const x = PAD + ci*CW;
+  const y = H/2 + (ri - (col.length-1)/2)*74 - NH/2;
+  pos[t.id]={x,y};
+}));
+const S = 'http://www.w3.org/2000/svg';
+const el=(n,a)=>{const e=document.createElementNS(S,n);for(const k in a)e.setAttribute(k,a[k]);return e};
+const edges=[];
+/* blocking edges */
+DATA.tickets.forEach(t=>t.blockedBy.forEach(b=>{ if(!byId[b])return;
+  const p1=pos[b],p2=pos[t.id];
+  const x1=p1.x+NW,y1=p1.y+NH/2,x2=p2.x,y2=p2.y+NH/2,mx=(x1+x2)/2;
+  const path=el('path',{d:`M${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`,class:'edge'});
+  path.dataset.a=b; path.dataset.b=t.id; svg.appendChild(path); edges.push(path);
+}));
+/* destination flag: dashed edges from tickets nothing depends on */
+const hasDependent = new Set(); DATA.tickets.forEach(t=>t.blockedBy.forEach(b=>hasDependent.add(b)));
+const fx = PAD+(maxD+1)*CW+26, fy = H/2;
+DATA.tickets.filter(t=>!hasDependent.has(t.id)).forEach(t=>{
+  const p=pos[t.id],x1=p.x+NW,y1=p.y+NH/2,mx=(x1+fx)/2;
+  svg.appendChild(el('path',{d:`M${x1} ${y1} C ${mx} ${y1}, ${mx} ${fy}, ${fx-14} ${fy}`,class:'edge dest-edge'}));
+});
+const flag=el('g',{class:'destflag'});
+flag.appendChild(el('path',{d:`M${fx} ${fy-26} v52 M${fx} ${fy-26} l30 9 -30 9`,stroke:'var(--beacon)','stroke-width':'2',fill:'var(--beacon)'}));
+const ftxt=el('text',{x:fx+6,y:fy+38,'text-anchor':'middle'}); ftxt.textContent=L.destination; flag.appendChild(ftxt);
+svg.appendChild(flag);
+/* nodes */
+DATA.tickets.forEach(t=>{
+  const p=pos[t.id];
+  const g=el('g',{class:'node '+t.s,transform:`translate(${p.x},${p.y})`,tabindex:'0',role:'button','aria-label':`${t.id} ${t.title} — ${STATUS_LABEL[t.s]}`});
+  if(t.s==='frontier') g.appendChild(el('circle',{class:'halo',cx:NW/2,cy:NH/2,r:56}));
+  g.appendChild(el('rect',{width:NW,height:NH,rx:7}));
+  const l1=el('text',{x:12,y:19,class:'nid'}); l1.textContent=t.id+' · '+(TYPE_LABEL[t.type]||t.type);
+  const l2=el('text',{x:12,y:35}); l2.textContent=cut(t.title,20);
+  const tip=el('title',{}); tip.textContent=`${t.id} ${t.title} [${STATUS_LABEL[t.s]}]`;
+  g.append(tip,l1,l2);
+  g.addEventListener('mouseenter',()=>light(t.id)); g.addEventListener('mouseleave',unlight);
+  g.addEventListener('focus',()=>light(t.id)); g.addEventListener('blur',unlight);
+  const open=()=>{const c=document.getElementById('card-'+t.id); if(c){c.open=true; c.scrollIntoView({block:'center'});}};
+  g.addEventListener('click',open);
+  g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open();}});
+  svg.appendChild(g); t._node=g;
+});
+/* fog veil over the chart's right edge */
+const veil=el('rect',{class:'fogveil',x:W-120,y:0,width:120,height:H,fill:'url(#fogGrad)'});
+const defs=el('defs',{}); const gr=el('linearGradient',{id:'fogGrad',x1:0,x2:1});
+gr.appendChild(el('stop',{offset:'0','stop-color':'#8FA3B0','stop-opacity':'0'}));
+gr.appendChild(el('stop',{offset:'1','stop-color':'#8FA3B0','stop-opacity':'.13'}));
+defs.appendChild(gr); svg.appendChild(defs); svg.appendChild(veil);
+
+function chain(id,dir,acc){ acc.add(id);
+  DATA.tickets.forEach(t=>{
+    if(dir==='up'&&t.id===id) t.blockedBy.forEach(b=>chain(b,'up',acc));
+    if(dir==='down'&&t.blockedBy.includes(id)) chain(t.id,'down',acc);
+  }); return acc; }
+function light(id){
+  const lit=chain(id,'up',chain(id,'down',new Set()));
+  DATA.tickets.forEach(t=>t._node.classList.toggle('dim',!lit.has(t.id))||t._node.classList.toggle('lit',lit.has(t.id)));
+  edges.forEach(e=>{const on=lit.has(e.dataset.a)&&lit.has(e.dataset.b);
+    e.classList.toggle('lit',on); e.classList.toggle('dim',!on);});
+}
+function unlight(){ DATA.tickets.forEach(t=>t._node.classList.remove('dim','lit'));
+  edges.forEach(e=>e.classList.remove('dim','lit')); }
+
+/* ---------- cards + filters ---------- */
+const order=['frontier','claimed','blocked','resolved'];
+const cardsEl=document.getElementById('cards');
+[...DATA.tickets].sort((a,b)=>order.indexOf(a.s)-order.indexOf(b.s)||a.id.localeCompare(b.id)).forEach(t=>{
+  const dts=document.createElement('details');
+  dts.className='card'; dts.id='card-'+t.id; dts.dataset.s=t.s;
+  const blk=t.blockedBy.length?`<span class="blockline">⛔ ${L.prerequisite}: ${t.blockedBy.join(', ')}</span>`:'';
+  dts.innerHTML=`<summary><span class="tid">${t.id}</span><span class="ttitle">${esc(t.title)}</span>${blk}
+    <span class="badge t">${TYPE_LABEL[t.type]||t.type}</span><span class="badge s-${t.s}">${STATUS_LABEL[t.s]}</span></summary>
+    <div class="card-body"><h4>${L.question}</h4>${mdBlock(t.question)}
+    ${t.answer?`<h4>${L.answer}</h4>${mdBlock(t.answer)}`:''}
+    ${t.comments?`<h4>${L.comments}</h4>${mdBlock(t.comments)}`:''}
+    <h4><a href="${esc(t.file)}">${L.openTicket} →</a></h4></div>`;
+  cardsEl.appendChild(dts);
+});
+const chipsEl=document.getElementById('chips');
+const active=new Set(order);
+['all',...order].forEach(s=>{
+  const b=document.createElement('button');
+  b.className='chip'; b.textContent=s==='all'?`${L.all} ${DATA.tickets.length}`:`${STATUS_LABEL[s]} ${n(s)}`;
+  b.setAttribute('aria-pressed', s==='all');
+  b.onclick=()=>{ chipsEl.querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-pressed','false'));
+    b.setAttribute('aria-pressed','true');
+    cardsEl.querySelectorAll('details').forEach(c=>c.style.display=(s==='all'||c.dataset.s===s)?'':'none'); };
+  chipsEl.appendChild(b);
+});
+
+/* ---------- map sections ---------- */
+const li=(target,items)=>{const u=document.getElementById(target);
+  items.forEach(x=>{const l=document.createElement('li');l.innerHTML=md(x);u.appendChild(l);});
+  if(!items.length){const l=document.createElement('li');l.style.opacity=.5;l.textContent=`— ${L.empty}`;u.appendChild(l);}};
+li('decisions',DATA.decisions); li('fog',DATA.fog); li('oos',DATA.outOfScope);
+</script>
+</body>
+</html>
