@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<title>壞案二：外部 script</title>
+<style>body{font-family:'Noto Serif TC',serif;background:#f5f4ed}</style>
+<script src="https://cdn.example.com/analytics.js"></script>
+</head>
+<body>
+<article class="paper">
+<h1>會發外部請求的產物</h1>
+<p>IR 齊備且通過 schema，但頁面載入時仍會向外拉取資源，違反零外部請求鐵律。</p>
+</article>
+<script type="application/kamishibai+json">{"irVersion":"1","engine":"0.1.0","template":{"namespace":"kami","name":"long-form","version":"0.1.0"},"doc":{"id":"b1","type":"doc","meta":{"title":"壞案二：外部 script"},"children":[{"id":"b2","type":"section","title":"會發外部請求的產物","level":1,"children":[{"id":"b3","type":"prose","html":"IR 齊備且通過 schema，但頁面載入時仍會向外拉取資源。"}]}]},"createdAt":"2026-08-16T00:00:00.000Z","generator":"fixture"}</script>
+</body>
+</html>

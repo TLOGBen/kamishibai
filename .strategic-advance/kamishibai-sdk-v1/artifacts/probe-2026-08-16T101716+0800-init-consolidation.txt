@@ -1,0 +1,53 @@
+# scribe probe log — campaign init consolidation
+# campaign root: /home/vakarve/project/kamishibai
+# probe timestamp: 2026-08-16T10:17:16+0800
+
+$ date "+%Y-%m-%dT%H:%M:%S%z"
+2026-08-16T10:17:41+0800
+
+$ git -C /home/vakarve/project/kamishibai status --short --branch
+## main...origin/main
+?? .strategic-advance/
+
+$ git -C /home/vakarve/project/kamishibai diff --stat  (and --cached)
+(both empty)
+
+$ Read /home/vakarve/project/kamishibai/.git/HEAD
+ref: refs/heads/main
+$ Read /home/vakarve/project/kamishibai/.git/refs/heads/main
+27b537dc1ddc8ca1b6df7a123c1111519db76036
+$ Read /home/vakarve/project/kamishibai/.git/refs/remotes/origin/main
+27b537dc1ddc8ca1b6df7a123c1111519db76036
+
+$ Read /home/vakarve/project/kamishibai/SPEC.md  -> File does not exist
+$ Read /home/vakarve/project/kamishibai/AGENTS.md -> File does not exist
+
+$ ls -1 /home/vakarve/project/kamishibai/
+README.md
+
+$ ls -1 /home/vakarve/project/kamishibai/.strategic-advance/kamishibai-sdk-v1/artifacts/ | grep -ci snapshot   [probed before any scribe write]
+0
+
+$ grep -rl sealed /home/vakarve/project/kamishibai/.claude/ | wc -l
+0
+
+$ grep -rl "application/kamishibai+json" --include=*.html /home/vakarve/project/kamishibai/
+/home/vakarve/project/kamishibai/.claude/wayfinder/kamishibai-sdk/map.html
+
+$ grep -l "Status: resolved" /home/vakarve/project/kamishibai/.claude/wayfinder/kamishibai-sdk/issues/* | wc -l
+12
+$ ls -1 .../issues/ | wc -l
+12
+
+$ grep -n "Decisions so far" /home/vakarve/project/kamishibai/.claude/wayfinder/kamishibai-sdk/map.md
+17:## Decisions so far
+
+### 補充探測 batch 2（時間戳見下）
+$ date "+%Y-%m-%dT%H:%M:%S%z"
+2026-08-16T10:22:24+0800
+
+$ ls -1 /home/vakarve/project/kamishibai/.strategic-advance/kamishibai-sdk-v1/  [run-ledger.jsonl 是否已存在，探測於書記官寫入之前]
+artifacts
+
+$ find /home/vakarve/project/kamishibai -type f \( -name "*.ttf" -o -name "*.otf" -o -name "*.woff*" \)
+FONT_BINARY_COUNT=0

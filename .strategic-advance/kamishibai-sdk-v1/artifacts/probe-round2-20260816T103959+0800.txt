@@ -1,0 +1,117 @@
+### PROBE ROUND 2 (light consolidation) campaign-root=/home/vakarve/project/kamishibai
+$ date "+%Y-%m-%dT%H:%M:%S%z"
+2026-08-16T10:39:59+0800
+
+$ git -C /home/vakarve/project/kamishibai status --short
+?? .strategic-advance/
+?? CONTRACT.md
+
+$ git -C /home/vakarve/project/kamishibai status --short --branch
+## main...origin/main
+?? .strategic-advance/
+?? CONTRACT.md
+
+$ git -C /home/vakarve/project/kamishibai diff --stat
+(exit=0)
+
+$ ls -la /home/vakarve/project/kamishibai/SPEC.md /home/vakarve/project/kamishibai/AGENTS.md
+.rw-r--r-- 9.2k vakarve 16 Aug 10:24 /home/vakarve/project/kamishibai/AGENTS.md
+.rw-r--r--  31k vakarve 16 Aug 10:27 /home/vakarve/project/kamishibai/SPEC.md
+
+$ ls -la /home/vakarve/project/kamishibai/.claude/research/
+.rw-r--r-- 16k vakarve 16 Aug 10:25 tsanger-jinkai02-license.md
+
+$ find /home/vakarve/project/kamishibai -type f \( -name "*.ttf" -o -name "*.otf" -o -name "*.woff" -o -name "*.woff2" \)
+(count=0)
+
+$ ls -1 /home/vakarve/project/kamishibai/
+AGENTS.md
+CONTRACT.md
+README.md
+SPEC.md
+
+$ ls -1a /home/vakarve/project/kamishibai/packages /home/vakarve/project/kamishibai/src 2>&1
+"/home/vakarve/project/kamishibai/packages": No such file or directory (os error 2)
+"/home/vakarve/project/kamishibai/src": No such file or directory (os error 2)
+
+### PROBE ROUND 2 (cont.)
+$ cat /home/vakarve/project/kamishibai/.git/refs/heads/main
+2919955e43f292816563665c1b8bc0371d64ec4a
+$ cat /home/vakarve/project/kamishibai/.git/refs/remotes/origin/main
+2919955e43f292816563665c1b8bc0371d64ec4a
+
+$ grep -n '@kamishibai/sdk' /home/vakarve/project/kamishibai/SPEC.md
+439:> **已裁決（2026-08-16 F0）**：免安裝入口＝**`npx @kamishibai/sdk`**（npx 對 scoped 套件直接執行其 bin；安裝後 bin 名仍為 `kamishibai`）。issues/06 的「`npx kamishibai`」為成文早於命名實查的筆誤，已於該票 Comments 修訂。npm org `@kamishibai` 已由使用者於 2026-08-16 註冊成功。
+539:| 套件名 | **`@kamishibai/sdk`（已定案）**——npm org `@kamishibai` 於 2026-08-16 由使用者註冊成功（帳號 vakarve）。裸名 `kamishibai` 已被 Re:Earth 影片工具佔走（實查：`curl registry.npmjs.org/kamishibai` → 200，latest 0.4.0），保底名 `kamishibai-sdk` 不再需要 |
+651:（原列「免安裝入口的實際形式」已於 2026-08-16 裁決為 `npx @kamishibai/sdk`，見 §10.3。）
+
+$ grep -n '不隨包散布\|隨包散布\|散布' /home/vakarve/project/kamishibai/SPEC.md
+307:- TsangerJinKai02 **不隨包散布**（授權查證 NO-GO：官方免費白名單不含今楷家族、name table 明文要求書面許可）；降為「使用者自裝、SDK 偵測使用」層。倉耳免費 22 款（与墨、非白系列）授權允許再散布，列為日後型體品味 follow-up。
+548:**Verification task（S1 前）——已完成（2026-08-16）**：TsangerJinKai02 再散布授權查證結果 **NO-GO**（一手官方證據四路印證，報告：`.claude/research/tsanger-jinkai02-license.md`）。出廠字體定案見 §7.2：Noto Serif TC＋Maple Mono CN，Tsanger 降為使用者自裝層。
+
+$ grep -n '^#\{1,3\} ' /home/vakarve/project/kamishibai/SPEC.md | grep -n '7\.\|15\.'
+1:# kamishibai SDK 規格書
+9:## 1. 概述與定位
+11:### 1.1 這是什麼
+21:### 1.2 為什麼要有它（現況背景）
+37:### 1.3 邊界（SDK 管到哪為止）
+48:### 1.4 統一風格願景
+52:### 1.5 常設原則：臨摹即完備性判準
+58:## 2. 核心抽象
+60:### 2.1 單一管線：一切皆內容＋模板
+73:### 2.2 raw 島嶼逃生艙
+83:### 2.3 產物必須能單獨生存
+89:## 3. v1 block 詞彙表
+97:### 3.1 結構類（2）
+104:### 3.2 散文類（4）
+113:### 3.3 資料類（6）
+124:### 3.4 媒體類（3）
+132:### 3.5 簡報類（2）
+139:### 3.6 `video` 雙子型與離線降級
+152:### 3.7 互動元件 v1 五件組
+170:## 4. 雙入口與 canonical block tree
+190:## 5. 模板系統
+192:### 5.1 實作棧
+211:### 5.2 模板包規格與 TOML manifest 七區段
+232:### 5.3 初始化與腳手架
+248:## 6. 持久化
+250:### 6.1 中央儲存庫佈局
+271:### 6.2 版本策略
+281:### 6.3 調用 key 與分發
+291:## 7. 產物規格
+295:### 7.1 格式家族
+300:### 7.2 字體子集化
+309:### 7.3 IR 內嵌欄位
+326:### 7.4 播放模式
+330:### 7.5 尺寸與相容底線
+343:## 8. 中央產物庫與投遞副本
+362:## 9. 專案解析
+364:### 9.1 四層解析順序
+377:### 9.2 列出內容
+383:## 10. CLI 指令面
+387:### 10.1 指令全表
+419:### 10.2 雙伺服模式
+428:### 10.3 Agent 好用語意
+443:## 11. 島嶼柵欄與品質閘門
+457:## 12. 詞彙演化治理
+463:### 12.1 slot-report（自動蒐集）
+470:### 12.2 升格審查
+477:### 12.3 轉正／降格條款（falsifiable）
+484:### 12.4 配套 skill
+490:## 13. UI 模式
+500:### 13.1 留言迭代迴路
+514:## 14. 三殼架構
+532:## 15. 發佈
+543:### 15.1 私有慣例抽成預設
+550:### 15.2 文件最低標
+559:## 16. 遷移策略
+563:### 16.1 第一驗證客戶＝book
+567:### 16.2 雙軌逐個切
+575:### 16.3 硬約束（使用者指定）
+581:### 16.4 搬家機制
+587:### 16.5 切片表 S1–S9
+605:### 16.6 臨摹能力（S7）
+611:### 16.7 執行指揮層
+617:## 17. 範圍外
+626:## 附錄 A：票號索引
+643:## 附錄 B：本 SPEC 標記為「未定」的項目

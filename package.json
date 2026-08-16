@@ -1,0 +1,38 @@
+{
+  "name": "@kamishibai/sdk",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "vitest run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TLOGBen/kamishibai.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/TLOGBen/kamishibai/issues"
+  },
+  "homepage": "https://github.com/TLOGBen/kamishibai#readme",
+  "bin": {
+    "kamishibai": "./src/cli/index.js"
+  },
+  "dependencies": {
+    "@fontsource/noto-serif-tc": "^5.3.0",
+    "ajv": "^8.20.0",
+    "commander": "^15.0.0",
+    "gray-matter": "^4.0.3",
+    "markdown-it": "^15.0.0",
+    "vue": "^3.5.41"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.10"
+  }
+}

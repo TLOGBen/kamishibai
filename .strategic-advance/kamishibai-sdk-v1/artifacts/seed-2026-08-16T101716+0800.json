@@ -1,0 +1,425 @@
+{
+  "missionId": "kamishibai-sdk-v1",
+  "wayfinderMapPath": ".claude/wayfinder/kamishibai-sdk/map.md",
+  "objective": {
+    "purpose": "打造 kamishibai 初版 SDK（Agent 專用呈現 SDK），並以 design／book 雙客戶實際驗證通過",
+    "desiredEndState": [
+      "S1–S5 五片全部 sealed",
+      "design 以 SDK 建立 Kami 標準模板並入中央儲存庫",
+      "book 經 SDK 渲染一本既有書，產物通過 lint 且內嵌 IR",
+      "新舊產物 snapshot 對照 artifact 存在"
+    ],
+    "worldDimensions": [
+      "repoSpecFiles",
+      "sealRecords",
+      "centralStore",
+      "renderArtifacts",
+      "npmPackageName"
+    ],
+    "protectedAssets": [
+      {
+        "id": "kamishibai-repo-main",
+        "displayText": "GitHub TLOGBen/kamishibai main 分支（含已推的 wayfinder 地圖 27b537d）——損毀即失去全部決策記錄與程式碼"
+      },
+      {
+        "id": "existing-plugin-renderers",
+        "displayText": "baransu 4.0.0 與 common 1.15.0 既有渲染機制（golden-template、render_map.py 等）——雙軌期間使用者日常工作依賴它們"
+      },
+      {
+        "id": "central-store",
+        "displayText": "~/.kamishibai/ 中央儲存庫（未來建立）——模板與產物正本"
+      }
+    ],
+    "victoryCriteria": [
+      {
+        "id": "vc1-five-seals",
+        "displayText": "S1–S5 五片在 repo 內各有 seal 記錄",
+        "predicate": "SEALED_SLICE_COUNT == 5"
+      },
+      {
+        "id": "vc2-kami-template",
+        "displayText": "中央儲存庫存在含 .toml manifest 的 Kami 標準模板包",
+        "predicate": "KAMI_TEMPLATE_MANIFEST_PRESENT == true"
+      },
+      {
+        "id": "vc3-book-render",
+        "displayText": "存在一份 SDK 產出、內嵌 application/kamishibai+json IR 且 lint exit 0 的單檔 HTML",
+        "predicate": "SDK_RENDERED_HTML_WITH_IR_LINT_CLEAN == true"
+      },
+      {
+        "id": "vc4-snapshot-compare",
+        "displayText": "任務工作區 artifacts/ 下存在新舊渲染 snapshot 對照圖",
+        "predicate": "SNAPSHOT_COMPARISON_ARTIFACT_COUNT >= 1"
+      }
+    ],
+    "victoryEvidence": [
+      "repo .claude/ 下 seal 記錄掃描",
+      "中央儲存庫模板目錄與 .toml manifest 回讀",
+      "渲染產物內 IR script 區塊比對＋lint 離場碼",
+      "任務工作區 artifacts/ 對照圖清單"
+    ],
+    "constraints": [
+      "clean architecture 分層",
+      "單檔 <800 行",
+      "MIT 授權",
+      "每片 /contract → TDD → /seal",
+      "雙軌期間不得破壞 baransu／common 既有 renderer 行為",
+      "渲染產物零外部請求"
+    ],
+    "unacceptableOutcomes": [
+      "遷移完成前既有 plugin renderer 被破壞",
+      "未經授權查證的 TsangerJinKai02 字體被嵌入公開發佈物",
+      "戰役 token 預算耗盡於簿記而無世界增量"
+    ]
+  },
+  "worldState": {
+    "repoSpecFiles": "ABSENT",
+    "sealRecords": "NONE",
+    "centralStore": "UNPROBED",
+    "renderArtifacts": "ABSENT",
+    "npmPackageName": "UNDECIDED"
+  },
+  "plainBriefing": {
+    "context": "kamishibai SDK 的規格目前只活在 wayfinder 地圖（12 張決策票全數結案），repo 本身除 README 外還是空的。",
+    "currentSituation": "戰役以語意種子開冊；除了主攻 F0 的進入條件與復原就緒度，其餘證據都還是 UNKNOWN，等待逐項探測。",
+    "reasoning": "先把地圖裡的決策蒸餾成 repo 內的 SPEC.md／AGENTS.md，後續五片才有可被 /contract 釘住的權威文本。",
+    "nextMove": "在 F0 蒸餾規格、查證字體授權、落定 npm 套件名，三者到齊才移交 F1。",
+    "userRole": "確認戰略目標與戰線劃分是否符合意圖；不要手動改 state.json。"
+  },
+  "battlefields": [
+    {
+      "id": "f0-preflight",
+      "mainEffort": true,
+      "operationType": "SHAPING",
+      "objective": "把 wayfinder 地圖的決策蒸餾成 repo 內權威文本，並清掉字體授權與套件命名兩個未決點",
+      "entryState": "SPEC_ONLY_IN_WAYFINDER_MAP",
+      "terminalState": "SPEC_AND_AGENTS_LANDED",
+      "mutationScope": [
+        "CreateSpecMd",
+        "CreateAgentsMd"
+      ],
+      "owner": "sa-operator",
+      "timeBudgetMinutes": 240,
+      "remainingTransitions": 3,
+      "costMinutes": 0,
+      "expectedVictoryCriterionIds": [],
+      "entryObservation": {
+        "sourceType": "FILE",
+        "sourceRef": "scribe-probe:git -C /home/vakarve/project/kamishibai diff --stat@2026-08-16T10:17:16+08:00",
+        "observedAt": "2026-08-16T10:17:16+08:00"
+      },
+      "recovery": {
+        "action": "蒸餾產出被否決時，以 git 還原 repo 至 27b537d，不保留半成品文本",
+        "steps": [
+          "git -C /home/vakarve/project/kamishibai status --short 確認變更範圍",
+          "git checkout -- 受影響檔案；新增檔案直接刪除",
+          "確認 HEAD 仍為 27b537dc1ddc8ca1b6df7a123c1111519db76036"
+        ],
+        "readinessPredicate": "GIT_TRACKED_TREE_CLEAN == true AND HEAD_SHA == 27b537dc1ddc8ca1b6df7a123c1111519db76036",
+        "successPredicate": "REPO_TRACKED_STATE_EQUALS_27B537D",
+        "stopCondition": "git 還原指令回報衝突或 HEAD 非預期",
+        "observation": {
+          "sourceType": "FILE",
+          "sourceRef": "scribe-probe:Read /home/vakarve/project/kamishibai/.git/refs/heads/main@2026-08-16T10:17:16+08:00",
+          "observedAt": "2026-08-16T10:17:16+08:00"
+        }
+      }
+    },
+    {
+      "id": "f1-s1-spine",
+      "operationType": "DECISIVE",
+      "objective": "S1 骨幹：render CLI 能把 fixture IR 渲染成通過 lint 的離線單檔 HTML",
+      "entryState": "SPEC_AND_AGENTS_LANDED",
+      "terminalState": "S1_SPINE_SEALED",
+      "mutationScope": [
+        "CreateSdkSpine",
+        "AddRenderCli"
+      ],
+      "owner": "sa-operator",
+      "timeBudgetMinutes": 480,
+      "remainingTransitions": 4,
+      "costMinutes": 0,
+      "expectedVictoryCriterionIds": [
+        "vc1-five-seals"
+      ],
+      "recovery": {
+        "action": "骨幹實作失控時回退至 F0 終局 commit，不留半成品 SDK",
+        "steps": [
+          "停止實作",
+          "git 還原至 F0 終局 commit",
+          "重新以 /contract 收斂驗收條件"
+        ],
+        "readinessPredicate": "GIT_TRACKED_TREE_CLEAN_AT_F1_ENTRY == true",
+        "successPredicate": "REPO_TRACKED_STATE_EQUALS_F0_TERMINAL_COMMIT",
+        "stopCondition": "既有 plugin renderer 行為出現回歸"
+      }
+    },
+    {
+      "id": "f2-s2-book1",
+      "operationType": "DECISIVE",
+      "objective": "S2：book 長文路徑、中央產物庫、open/list、replay",
+      "entryState": "S1_SPINE_SEALED",
+      "terminalState": "S2_BOOK1_SEALED",
+      "mutationScope": [
+        "AddBookPipeline",
+        "CreateCentralStore"
+      ],
+      "owner": "sa-operator",
+      "timeBudgetMinutes": 480,
+      "remainingTransitions": 4,
+      "costMinutes": 0,
+      "expectedVictoryCriterionIds": [
+        "vc1-five-seals"
+      ],
+      "recovery": {
+        "action": "中央儲存庫寫入前先備份既有內容，失敗時還原",
+        "steps": [
+          "停止寫入",
+          "還原 ~/.kamishibai/ 備份",
+          "git 還原 repo 變更"
+        ],
+        "readinessPredicate": "CENTRAL_STORE_BACKUP_AVAILABLE_AT_F2 == true",
+        "successPredicate": "CENTRAL_STORE_STATE_RESTORED",
+        "stopCondition": "中央儲存庫既有內容被覆寫且無備份"
+      }
+    },
+    {
+      "id": "f3-s3-book2",
+      "operationType": "DECISIVE",
+      "objective": "S3：diagram plugin、deck/slide、export、snapshot",
+      "entryState": "S2_BOOK1_SEALED",
+      "terminalState": "S3_BOOK2_SEALED",
+      "mutationScope": [
+        "AddDiagramPlugin",
+        "AddDeckAndExport"
+      ],
+      "owner": "sa-operator",
+      "timeBudgetMinutes": 480,
+      "remainingTransitions": 4,
+      "costMinutes": 0,
+      "expectedVictoryCriterionIds": [
+        "vc1-five-seals"
+      ],
+      "recovery": {
+        "action": "外掛破壞核心渲染時停用外掛並回退 commit",
+        "steps": [
+          "停用 diagram plugin",
+          "git 還原至 S2 終局 commit",
+          "重跑測試"
+        ],
+        "readinessPredicate": "GIT_TRACKED_TREE_CLEAN_AT_F3_ENTRY == true",
+        "successPredicate": "CORE_RENDER_TESTS_GREEN",
+        "stopCondition": "核心渲染測試轉紅且無法定位"
+      }
+    },
+    {
+      "id": "f4-s4-docs",
+      "operationType": "SUSTAINING",
+      "objective": "S4：錯字表、工作日誌",
+      "entryState": "S3_BOOK2_SEALED",
+      "terminalState": "S4_DOCS_SEALED",
+      "mutationScope": [
+        "AddDocsSurface"
+      ],
+      "owner": "sa-operator",
+      "timeBudgetMinutes": 240,
+      "remainingTransitions": 3,
+      "costMinutes": 0,
+      "expectedVictoryCriterionIds": [
+        "vc1-five-seals"
+      ],
+      "recovery": {
+        "action": "文件層變更以 git 還原即可",
+        "steps": [
+          "git 還原至 S3 終局 commit"
+        ],
+        "readinessPredicate": "GIT_TRACKED_TREE_CLEAN_AT_F4_ENTRY == true",
+        "successPredicate": "REPO_TRACKED_STATE_EQUALS_S3_TERMINAL_COMMIT",
+        "stopCondition": "文件變更牽動核心程式碼"
+      }
+    },
+    {
+      "id": "f5-s5-delivery",
+      "operationType": "SUSTAINING",
+      "objective": "S5：serve/HMR、留言迴路、config/setup/debug",
+      "entryState": "S4_DOCS_SEALED",
+      "terminalState": "S5_DELIVERY_SEALED",
+      "mutationScope": [
+        "AddServeAndHmr",
+        "AddCommentLoop"
+      ],
+      "owner": "sa-operator",
+      "timeBudgetMinutes": 480,
+      "remainingTransitions": 4,
+      "costMinutes": 0,
+      "expectedVictoryCriterionIds": [
+        "vc1-five-seals"
+      ],
+      "recovery": {
+        "action": "serve 層引入外部請求或破壞離線性時回退",
+        "steps": [
+          "停止 serve 相關變更",
+          "git 還原至 S4 終局 commit",
+          "重跑離線性檢查"
+        ],
+        "readinessPredicate": "GIT_TRACKED_TREE_CLEAN_AT_F5_ENTRY == true",
+        "successPredicate": "RENDER_OUTPUT_ZERO_EXTERNAL_REQUESTS",
+        "stopCondition": "渲染產物出現外部請求"
+      }
+    },
+    {
+      "id": "f6-endgame",
+      "operationType": "DECISIVE",
+      "objective": "雙客戶驗證：design 建立 Kami 標準模板、book 以 SDK 渲染一本既有書、產出新舊 snapshot 對照",
+      "entryState": "S5_DELIVERY_SEALED",
+      "terminalState": "DUAL_CLIENT_VERIFIED",
+      "mutationScope": [
+        "PublishKamiTemplate",
+        "RenderExistingBook",
+        "WriteSnapshotComparison"
+      ],
+      "owner": "sa-operator",
+      "timeBudgetMinutes": 480,
+      "remainingTransitions": 4,
+      "costMinutes": 0,
+      "expectedVictoryCriterionIds": [
+        "vc2-kami-template",
+        "vc3-book-render",
+        "vc4-snapshot-compare"
+      ],
+      "recovery": {
+        "action": "中央儲存庫正本受損時自備份還原，並停止再次寫入",
+        "steps": [
+          "停止寫入 ~/.kamishibai/",
+          "自備份還原模板與產物正本",
+          "回讀 manifest 確認一致"
+        ],
+        "readinessPredicate": "CENTRAL_STORE_BACKUP_AVAILABLE_AT_F6 == true",
+        "successPredicate": "CENTRAL_STORE_MANIFEST_READBACK_CONSISTENT",
+        "stopCondition": "任何來源顯示正本已被覆寫"
+      }
+    }
+  ],
+  "risks": [
+    {
+      "id": "renderer-regression",
+      "affectedFrontId": "f1-s1-spine",
+      "protectedAssetId": "existing-plugin-renderers",
+      "threat": "SDK 骨幹與既有 golden-template／render_map.py 共用路徑；探測時 repo 內尚無任何 SDK 程式碼，既有 plugin 檔未被觸碰，機率評為中",
+      "probability": 2,
+      "impact": 4,
+      "unacceptableThreshold": 12,
+      "guard": "SDK 只新增檔案，不改既有 plugin 檔；每片封緘前跑既有 renderer 冒煙",
+      "stopCondition": "既有 renderer 冒煙失敗",
+      "recoveryAction": "git 還原 SDK 變更並回報回歸指紋"
+    },
+    {
+      "id": "font-license-unverified",
+      "affectedFrontId": "f0-preflight",
+      "protectedAssetId": "kamishibai-repo-main",
+      "threat": "TsangerJinKai02 再散布授權未查證；探測時 repo 內零字體二進位、且已宣告 Noto Serif TC 退路，機率評為低但衝擊仍高",
+      "probability": 1,
+      "impact": 4,
+      "unacceptableThreshold": 12,
+      "guard": "verdict 未以證據入冊前，出廠字體一律停留在 Noto Serif TC",
+      "stopCondition": "出現任何將 TsangerJinKai02 檔案加入 repo 的動作",
+      "recoveryAction": "移除字體檔並改回 Noto Serif TC"
+    },
+    {
+      "id": "central-store-overwrite",
+      "affectedFrontId": "f6-endgame",
+      "protectedAssetId": "central-store",
+      "threat": "終局寫入 ~/.kamishibai/ 時可能覆寫模板與產物正本且無備份",
+      "probability": 2,
+      "impact": 4,
+      "unacceptableThreshold": 12,
+      "guard": "寫入前先備份，且只寫入明確路徑",
+      "stopCondition": "備份不可得時停止寫入",
+      "recoveryAction": "自備份還原並回讀 manifest"
+    }
+  ],
+  "decision": {
+    "chosenTactic": "先在 F0 把地圖決策蒸餾成 SPEC.md／AGENTS.md，並清掉字體授權與套件命名兩個未決點，再開 S1 骨幹",
+    "nextAction": "自 map.md 的 Decisions so far 與 12 張已結票蒸餾 SPEC.md 與 AGENTS.md 初稿",
+    "rationale": "五片切片都要靠權威文本釘驗收條件；規格只存在於地圖時，任何實作都無法被 /contract 判定",
+    "pivotCondition": "F0 同一失敗指紋（蒸餾產出被否決）出現兩次"
+  },
+  "takeoverReadiness": {
+    "actionId": "WriteSpecMdFromWayfinderDecisions",
+    "actorId": "sa-operator",
+    "sessionId": "kamishibai-sdk-v1-session-1",
+    "contextId": "campaign-root",
+    "scopeIdentity": "kamishibai-sdk-v1",
+    "operableEvidence": [
+      "冷啟動：僅 repo 檔案系統一維已由書記官探測，其餘控制面尚未取得探針證據"
+    ],
+    "prerequisiteIds": [
+      "wayfinder-issues-all-resolved",
+      "repo-tracked-tree-clean"
+    ],
+    "executable": {
+      "objective": "在 /home/vakarve/project/kamishibai 根目錄寫入一份自 wayfinder 地圖 Decisions so far 蒸餾的 SPEC.md",
+      "steps": [
+        "寫入 /home/vakarve/project/kamishibai/SPEC.md 一份初稿（內容取自 map.md Decisions so far 與 issues/ 12 張已結票，含落定的 npm 套件名）"
+      ],
+      "prohibitedActions": [
+        "不得改動 .claude/wayfinder/ 既有決策票",
+        "不得在授權 verdict 入冊前加入任何字體二進位檔",
+        "不得改動 baransu／common plugin 檔案"
+      ],
+      "sideEffects": [
+        "repo 根目錄新增一個未追蹤檔案 SPEC.md"
+      ],
+      "stopCondition": "SPEC.md 寫入一次即停；或發現地圖決策彼此衝突即停",
+      "recoveryAction": "刪除 /home/vakarve/project/kamishibai/SPEC.md，repo 追蹤狀態回到 27b537d"
+    },
+    "verifiable": {
+      "expectedWorldDelta": [
+        "repo 根目錄出現 SPEC.md",
+        "SPEC.md 內記載落定的 npm 套件名"
+      ],
+      "evidenceSources": [
+        "repo 檔案系統回讀",
+        "SPEC.md 內容比對地圖 Decisions so far"
+      ],
+      "successPredicates": [
+        "SPEC_MD_PRESENT == true"
+      ],
+      "failurePredicates": [
+        "SPEC.md 寫入後與地圖 Decisions so far 衝突",
+        "時限到時 repo 根仍無 SPEC.md"
+      ],
+      "deadlineMinutes": 240,
+      "worldDeltaContracts": [
+        {
+          "dimension": "repoSpecFiles",
+          "beforeValue": "ABSENT",
+          "afterValue": "SPEC_PRESENT"
+        },
+        {
+          "dimension": "npmPackageName",
+          "beforeValue": "UNDECIDED",
+          "afterValue": "DECIDED"
+        }
+      ]
+    }
+  },
+  "alternativeRoutes": [
+    {
+      "id": "noto-serif-fallback",
+      "reason": "TsangerJinKai02 再散布授權若查證為不可，出廠字體改用 Noto Serif TC，戰役不因字體停擺"
+    },
+    {
+      "id": "kamishibai-sdk-flat-name",
+      "reason": "@kamishibai org 若無法註冊，退回已驗證可用的 kamishibai-sdk 平名"
+    }
+  ],
+  "residualLossMeasurements": [
+    {
+      "id": "spec-decision-coverage",
+      "metric": "SPEC_DECISION_COVERAGE",
+      "displayText": "SPEC.md 覆蓋地圖 Decisions so far 的決策條目比例",
+      "predicate": "SPEC_DECISION_COVERAGE >= 1.0"
+    }
+  ]
+}

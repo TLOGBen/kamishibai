@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<title>壞案五：IR 可解析但不合 schema</title>
+<style>body{font-family:'Noto Serif TC',serif;background:#f5f4ed}</style>
+</head>
+<body>
+<article class="paper">
+<h1>IR 是合法 JSON，卻不合 schema</h1>
+<p>doc.children[0] 是 section 卻沒有 title（schema 要求 title/level/children 三者齊備）。
+lint 必須以 KSB_IR_SCHEMA 擋下，並把錯誤指到那個 block 的 path。</p>
+</article>
+<script type="application/kamishibai+json">{"irVersion":"1","engine":"0.1.0","template":{"namespace":"kami","name":"long-form","version":"0.1.0"},"doc":{"id":"b1","type":"doc","meta":{"title":"壞案五：IR 可解析但不合 schema"},"children":[{"id":"b2","type":"section","level":1,"children":[]}]},"createdAt":"2026-08-16T00:00:00.000Z","generator":"fixture"}</script>
+</body>
+</html>

@@ -1,0 +1,1529 @@
+{
+  "schemaVersion": 6,
+  "missionId": "kamishibai-sdk-v1",
+  "updatedAt": "2026-08-16T10:49:38+08:00",
+  "strategicObjective": {
+    "revision": 1,
+    "approvedAt": "2026-08-16T10:12:42+08:00",
+    "purpose": "打造 kamishibai 初版 SDK（Agent 專用呈現 SDK），並以 design／book 雙客戶實際驗證通過",
+    "desiredEndState": [
+      "S1–S5 五片全部 sealed",
+      "design 以 SDK 建立 Kami 標準模板並入中央儲存庫",
+      "book 經 SDK 渲染一本既有書，產物通過 lint 且內嵌 IR",
+      "新舊產物 snapshot 對照 artifact 存在"
+    ],
+    "worldDimensions": [
+      "repoSpecFiles",
+      "sealRecords",
+      "centralStore",
+      "renderArtifacts",
+      "npmPackageName"
+    ],
+    "protectedAssets": [
+      {
+        "id": "kamishibai-repo-main",
+        "displayText": "GitHub TLOGBen/kamishibai main 分支（含已推的 wayfinder 地圖 27b537d）——損毀即失去全部決策記錄與程式碼"
+      },
+      {
+        "id": "existing-plugin-renderers",
+        "displayText": "baransu 4.0.0 與 common 1.15.0 既有渲染機制（golden-template、render_map.py 等）——雙軌期間使用者日常工作依賴它們"
+      },
+      {
+        "id": "central-store",
+        "displayText": "~/.kamishibai/ 中央儲存庫（未來建立）——模板與產物正本"
+      }
+    ],
+    "victoryCriteria": [
+      {
+        "id": "vc1-five-seals",
+        "displayText": "S1–S5 五片在 repo 內各有 seal 記錄",
+        "predicate": "SEALED_SLICE_COUNT == 5",
+        "status": "FAIL",
+        "evidenceClaimIds": [
+          "claim-victory-vc1-five-seals"
+        ]
+      },
+      {
+        "id": "vc2-kami-template",
+        "displayText": "中央儲存庫存在含 .toml manifest 的 Kami 標準模板包",
+        "predicate": "KAMI_TEMPLATE_MANIFEST_PRESENT == true",
+        "status": "UNKNOWN",
+        "evidenceClaimIds": [
+          "claim-victory-vc2-kami-template"
+        ]
+      },
+      {
+        "id": "vc3-book-render",
+        "displayText": "存在一份 SDK 產出、內嵌 application/kamishibai+json IR 且 lint exit 0 的單檔 HTML",
+        "predicate": "SDK_RENDERED_HTML_WITH_IR_LINT_CLEAN == true",
+        "status": "FAIL",
+        "evidenceClaimIds": [
+          "claim-victory-vc3-book-render"
+        ]
+      },
+      {
+        "id": "vc4-snapshot-compare",
+        "displayText": "任務工作區 artifacts/ 下存在新舊渲染 snapshot 對照圖",
+        "predicate": "SNAPSHOT_COMPARISON_ARTIFACT_COUNT >= 1",
+        "status": "FAIL",
+        "evidenceClaimIds": [
+          "claim-victory-vc4-snapshot-compare"
+        ]
+      }
+    ],
+    "victoryEvidence": [
+      "repo .claude/ 下 seal 記錄掃描",
+      "中央儲存庫模板目錄與 .toml manifest 回讀",
+      "渲染產物內 IR script 區塊比對＋lint 離場碼",
+      "任務工作區 artifacts/ 對照圖清單"
+    ],
+    "constraints": [
+      "clean architecture 分層",
+      "單檔 <800 行",
+      "MIT 授權",
+      "每片 /contract → TDD → /seal",
+      "雙軌期間不得破壞 baransu／common 既有 renderer 行為",
+      "渲染產物零外部請求"
+    ],
+    "unacceptableOutcomes": [
+      "遷移完成前既有 plugin renderer 被破壞",
+      "未經授權查證的 TsangerJinKai02 字體被嵌入公開發佈物",
+      "戰役 token 預算耗盡於簿記而無世界增量"
+    ]
+  },
+  "plainBriefing": {
+    "context": "地圖決策已蒸餾成 repo 內權威文本：SPEC.md（31k）與 AGENTS.md（9.2k）已入庫，commit 2919955 與 origin/main 同步；SDK 程式碼仍為零。",
+    "currentSituation": "F0 三個出場條件全數以探測入冊，主攻交接至 F1-s1-spine；repo 追蹤樹乾淨、可回退至 2919955，工作區另有未追蹤的 CONTRACT.md（S1 的 /contract 進行中，尚無 code mutation）。",
+    "reasoning": "字體授權 NO-GO 已以查證報告與 SPEC §7.2「不隨包散布」入冊，font-license 風險轉為受控；套件名 @kamishibai/sdk 定案使保底平名路線關閉——F0 已無未決點。",
+    "nextMove": "在 F1 以 /contract 釘住 S1 骨幹驗收條件（render CLI 把 fixture IR 渲染成通過 lint 的離線單檔 HTML），再進 TDD 與封緘。",
+    "userRole": "確認 F1 的 pivot 條件與 S1 驗收面是否符合意圖；不要手動改 state.json。"
+  },
+  "currentTruth": {
+    "worldState": {
+      "repoSpecFiles": "SPEC_PRESENT",
+      "sealRecords": "NONE",
+      "centralStore": "UNPROBED",
+      "renderArtifacts": "ABSENT",
+      "npmPackageName": "DECIDED"
+    },
+    "evidenceClaims": [
+      {
+        "id": "claim-victory-vc1-five-seals",
+        "sourceType": "DB",
+        "sourceRef": "scribe-probe:grep -rl 'sealed' /home/vakarve/project/kamishibai/.claude/@2026-08-16T10:17:16+08:00",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "SEALED_SLICE_COUNT == 5",
+        "status": "FAIL"
+      },
+      {
+        "id": "claim-victory-vc2-kami-template",
+        "sourceType": "DB",
+        "sourceRef": "seeded: pending probe",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "KAMI_TEMPLATE_MANIFEST_PRESENT == true",
+        "status": "UNKNOWN"
+      },
+      {
+        "id": "claim-victory-vc3-book-render",
+        "sourceType": "DB",
+        "sourceRef": "scribe-probe:grep -rl 'application/kamishibai+json' --include=*.html /home/vakarve/project/kamishibai/@2026-08-16T10:17:16+08:00",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "SDK_RENDERED_HTML_WITH_IR_LINT_CLEAN == true",
+        "status": "FAIL"
+      },
+      {
+        "id": "claim-victory-vc4-snapshot-compare",
+        "sourceType": "DB",
+        "sourceRef": "scribe-probe:ls -1 /home/vakarve/project/kamishibai/.strategic-advance/kamishibai-sdk-v1/artifacts/ | grep -ci snapshot@2026-08-16T10:17:16+08:00",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "SNAPSHOT_COMPARISON_ARTIFACT_COUNT >= 1",
+        "status": "FAIL"
+      },
+      {
+        "id": "claim-front-f0-preflight-entry",
+        "sourceType": "FILE",
+        "sourceRef": "scribe-probe:git -C /home/vakarve/project/kamishibai diff --stat@2026-08-16T10:17:16+08:00",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "BATTLEFIELD[\"f0-preflight\"].ENTRY[\"SPEC_ONLY_IN_WAYFINDER_MAP\"] == true",
+        "status": "PASS"
+      },
+      {
+        "id": "claim-front-f0-preflight-exit",
+        "sourceType": "DB",
+        "sourceRef": "scribe-probe:ls -la /home/vakarve/project/kamishibai/SPEC.md /home/vakarve/project/kamishibai/AGENTS.md && ls -la /home/vakarve/project/kamishibai/.claude/research/ && grep -n \"@kamishibai/sdk\" /home/vakarve/project/kamishibai/SPEC.md（三條件：SPEC/AGENTS 入庫、NO-GO 報告入冊、套件名 SPEC:539 定案）@2026-08-16T10:39:59+08:00",
+        "observedAt": "2026-08-16T10:39:59+08:00",
+        "validUntil": "2026-08-16T13:39:59+08:00",
+        "authorityRank": 1,
+        "predicate": "BATTLEFIELD[\"f0-preflight\"].EXIT[\"SPEC_AND_AGENTS_LANDED\"] == true",
+        "status": "PASS"
+      },
+      {
+        "id": "claim-front-f0-preflight-pivot",
+        "sourceType": "DB",
+        "sourceRef": "scribe-probe:ls -1 /home/vakarve/project/kamishibai/.strategic-advance/kamishibai-sdk-v1/@2026-08-16T10:22:24+08:00",
+        "observedAt": "2026-08-16T10:22:24+08:00",
+        "validUntil": "2026-08-16T13:22:24+08:00",
+        "authorityRank": 1,
+        "predicate": "BATTLEFIELD[\"f0-preflight\"].PIVOT_TRIGGERED == true",
+        "status": "FAIL"
+      },
+      {
+        "id": "claim-front-f0-preflight-recovery",
+        "sourceType": "FILE",
+        "sourceRef": "scribe-probe:Read /home/vakarve/project/kamishibai/.git/refs/heads/main@2026-08-16T10:17:16+08:00",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "GIT_TRACKED_TREE_CLEAN == true AND HEAD_SHA == 27b537dc1ddc8ca1b6df7a123c1111519db76036",
+        "status": "PASS"
+      },
+      {
+        "id": "claim-front-f1-s1-spine-entry",
+        "sourceType": "DB",
+        "sourceRef": "scribe-probe:ls -la /home/vakarve/project/kamishibai/SPEC.md /home/vakarve/project/kamishibai/AGENTS.md（F1 進入條件 SPEC_AND_AGENTS_LANDED＝F0 終態）@2026-08-16T10:39:59+08:00",
+        "observedAt": "2026-08-16T10:39:59+08:00",
+        "validUntil": "2026-08-16T13:39:59+08:00",
+        "authorityRank": 1,
+        "predicate": "BATTLEFIELD[\"f1-s1-spine\"].ENTRY[\"SPEC_AND_AGENTS_LANDED\"] == true",
+        "status": "PASS"
+      },
+      {
+        "id": "claim-front-f1-s1-spine-exit",
+        "sourceType": "DB",
+        "sourceRef": "scribe-probe:grep -rl 'sealed' /home/vakarve/project/kamishibai/.claude/@2026-08-16T10:17:16+08:00",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "BATTLEFIELD[\"f1-s1-spine\"].EXIT[\"S1_SPINE_SEALED\"] == true",
+        "status": "FAIL"
+      },
+      {
+        "id": "claim-front-f1-s1-spine-pivot",
+        "sourceType": "DB",
+        "sourceRef": "scribe-probe:ls -1 /home/vakarve/project/kamishibai/.strategic-advance/kamishibai-sdk-v1/@2026-08-16T10:22:24+08:00",
+        "observedAt": "2026-08-16T10:22:24+08:00",
+        "validUntil": "2026-08-16T13:22:24+08:00",
+        "authorityRank": 1,
+        "predicate": "BATTLEFIELD[\"f1-s1-spine\"].PIVOT_TRIGGERED == true",
+        "status": "FAIL"
+      },
+      {
+        "id": "claim-front-f1-s1-spine-recovery",
+        "sourceType": "DB",
+        "sourceRef": "scribe-probe:git -C /home/vakarve/project/kamishibai diff --stat（空輸出＝追蹤樹乾淨）&& cat /home/vakarve/project/kamishibai/.git/refs/heads/main（2919955e43f292816563665c1b8bc0371d64ec4a，與 origin/main 同）@2026-08-16T10:39:59+08:00",
+        "observedAt": "2026-08-16T10:39:59+08:00",
+        "validUntil": "2026-08-16T13:39:59+08:00",
+        "authorityRank": 1,
+        "predicate": "GIT_TRACKED_TREE_CLEAN_AT_F1_ENTRY == true",
+        "status": "PASS"
+      },
+      {
+        "id": "claim-front-f2-s2-book1-entry",
+        "sourceType": "DB",
+        "sourceRef": "scribe-probe:grep -rl 'sealed' /home/vakarve/project/kamishibai/.claude/@2026-08-16T10:17:16+08:00",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "BATTLEFIELD[\"f2-s2-book1\"].ENTRY[\"S1_SPINE_SEALED\"] == true",
+        "status": "FAIL"
+      },
+      {
+        "id": "claim-front-f2-s2-book1-exit",
+        "sourceType": "DB",
+        "sourceRef": "scribe-probe:grep -rl 'sealed' /home/vakarve/project/kamishibai/.claude/@2026-08-16T10:17:16+08:00",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "BATTLEFIELD[\"f2-s2-book1\"].EXIT[\"S2_BOOK1_SEALED\"] == true",
+        "status": "FAIL"
+      },
+      {
+        "id": "claim-front-f2-s2-book1-pivot",
+        "sourceType": "DB",
+        "sourceRef": "scribe-probe:ls -1 /home/vakarve/project/kamishibai/.strategic-advance/kamishibai-sdk-v1/@2026-08-16T10:22:24+08:00",
+        "observedAt": "2026-08-16T10:22:24+08:00",
+        "validUntil": "2026-08-16T13:22:24+08:00",
+        "authorityRank": 1,
+        "predicate": "BATTLEFIELD[\"f2-s2-book1\"].PIVOT_TRIGGERED == true",
+        "status": "FAIL"
+      },
+      {
+        "id": "claim-front-f2-s2-book1-recovery",
+        "sourceType": "DB",
+        "sourceRef": "seeded: pending probe",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "CENTRAL_STORE_BACKUP_AVAILABLE_AT_F2 == true",
+        "status": "UNKNOWN"
+      },
+      {
+        "id": "claim-front-f3-s3-book2-entry",
+        "sourceType": "DB",
+        "sourceRef": "scribe-probe:grep -rl 'sealed' /home/vakarve/project/kamishibai/.claude/@2026-08-16T10:17:16+08:00",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "BATTLEFIELD[\"f3-s3-book2\"].ENTRY[\"S2_BOOK1_SEALED\"] == true",
+        "status": "FAIL"
+      },
+      {
+        "id": "claim-front-f3-s3-book2-exit",
+        "sourceType": "DB",
+        "sourceRef": "scribe-probe:grep -rl 'sealed' /home/vakarve/project/kamishibai/.claude/@2026-08-16T10:17:16+08:00",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "BATTLEFIELD[\"f3-s3-book2\"].EXIT[\"S3_BOOK2_SEALED\"] == true",
+        "status": "FAIL"
+      },
+      {
+        "id": "claim-front-f3-s3-book2-pivot",
+        "sourceType": "DB",
+        "sourceRef": "scribe-probe:ls -1 /home/vakarve/project/kamishibai/.strategic-advance/kamishibai-sdk-v1/@2026-08-16T10:22:24+08:00",
+        "observedAt": "2026-08-16T10:22:24+08:00",
+        "validUntil": "2026-08-16T13:22:24+08:00",
+        "authorityRank": 1,
+        "predicate": "BATTLEFIELD[\"f3-s3-book2\"].PIVOT_TRIGGERED == true",
+        "status": "FAIL"
+      },
+      {
+        "id": "claim-front-f3-s3-book2-recovery",
+        "sourceType": "DB",
+        "sourceRef": "seeded: pending probe",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "GIT_TRACKED_TREE_CLEAN_AT_F3_ENTRY == true",
+        "status": "UNKNOWN"
+      },
+      {
+        "id": "claim-front-f4-s4-docs-entry",
+        "sourceType": "DB",
+        "sourceRef": "scribe-probe:grep -rl 'sealed' /home/vakarve/project/kamishibai/.claude/@2026-08-16T10:17:16+08:00",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "BATTLEFIELD[\"f4-s4-docs\"].ENTRY[\"S3_BOOK2_SEALED\"] == true",
+        "status": "FAIL"
+      },
+      {
+        "id": "claim-front-f4-s4-docs-exit",
+        "sourceType": "DB",
+        "sourceRef": "scribe-probe:grep -rl 'sealed' /home/vakarve/project/kamishibai/.claude/@2026-08-16T10:17:16+08:00",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "BATTLEFIELD[\"f4-s4-docs\"].EXIT[\"S4_DOCS_SEALED\"] == true",
+        "status": "FAIL"
+      },
+      {
+        "id": "claim-front-f4-s4-docs-pivot",
+        "sourceType": "DB",
+        "sourceRef": "scribe-probe:ls -1 /home/vakarve/project/kamishibai/.strategic-advance/kamishibai-sdk-v1/@2026-08-16T10:22:24+08:00",
+        "observedAt": "2026-08-16T10:22:24+08:00",
+        "validUntil": "2026-08-16T13:22:24+08:00",
+        "authorityRank": 1,
+        "predicate": "BATTLEFIELD[\"f4-s4-docs\"].PIVOT_TRIGGERED == true",
+        "status": "FAIL"
+      },
+      {
+        "id": "claim-front-f4-s4-docs-recovery",
+        "sourceType": "DB",
+        "sourceRef": "seeded: pending probe",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "GIT_TRACKED_TREE_CLEAN_AT_F4_ENTRY == true",
+        "status": "UNKNOWN"
+      },
+      {
+        "id": "claim-front-f5-s5-delivery-entry",
+        "sourceType": "DB",
+        "sourceRef": "scribe-probe:grep -rl 'sealed' /home/vakarve/project/kamishibai/.claude/@2026-08-16T10:17:16+08:00",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "BATTLEFIELD[\"f5-s5-delivery\"].ENTRY[\"S4_DOCS_SEALED\"] == true",
+        "status": "FAIL"
+      },
+      {
+        "id": "claim-front-f5-s5-delivery-exit",
+        "sourceType": "DB",
+        "sourceRef": "scribe-probe:grep -rl 'sealed' /home/vakarve/project/kamishibai/.claude/@2026-08-16T10:17:16+08:00",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "BATTLEFIELD[\"f5-s5-delivery\"].EXIT[\"S5_DELIVERY_SEALED\"] == true",
+        "status": "FAIL"
+      },
+      {
+        "id": "claim-front-f5-s5-delivery-pivot",
+        "sourceType": "DB",
+        "sourceRef": "scribe-probe:ls -1 /home/vakarve/project/kamishibai/.strategic-advance/kamishibai-sdk-v1/@2026-08-16T10:22:24+08:00",
+        "observedAt": "2026-08-16T10:22:24+08:00",
+        "validUntil": "2026-08-16T13:22:24+08:00",
+        "authorityRank": 1,
+        "predicate": "BATTLEFIELD[\"f5-s5-delivery\"].PIVOT_TRIGGERED == true",
+        "status": "FAIL"
+      },
+      {
+        "id": "claim-front-f5-s5-delivery-recovery",
+        "sourceType": "DB",
+        "sourceRef": "seeded: pending probe",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "GIT_TRACKED_TREE_CLEAN_AT_F5_ENTRY == true",
+        "status": "UNKNOWN"
+      },
+      {
+        "id": "claim-front-f6-endgame-entry",
+        "sourceType": "DB",
+        "sourceRef": "scribe-probe:grep -rl 'sealed' /home/vakarve/project/kamishibai/.claude/@2026-08-16T10:17:16+08:00",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "BATTLEFIELD[\"f6-endgame\"].ENTRY[\"S5_DELIVERY_SEALED\"] == true",
+        "status": "FAIL"
+      },
+      {
+        "id": "claim-front-f6-endgame-exit",
+        "sourceType": "DB",
+        "sourceRef": "scribe-probe:grep -rl 'application/kamishibai+json' --include=*.html /home/vakarve/project/kamishibai/@2026-08-16T10:17:16+08:00",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "BATTLEFIELD[\"f6-endgame\"].EXIT[\"DUAL_CLIENT_VERIFIED\"] == true",
+        "status": "FAIL"
+      },
+      {
+        "id": "claim-front-f6-endgame-pivot",
+        "sourceType": "DB",
+        "sourceRef": "scribe-probe:ls -1 /home/vakarve/project/kamishibai/.strategic-advance/kamishibai-sdk-v1/@2026-08-16T10:22:24+08:00",
+        "observedAt": "2026-08-16T10:22:24+08:00",
+        "validUntil": "2026-08-16T13:22:24+08:00",
+        "authorityRank": 1,
+        "predicate": "BATTLEFIELD[\"f6-endgame\"].PIVOT_TRIGGERED == true",
+        "status": "FAIL"
+      },
+      {
+        "id": "claim-front-f6-endgame-recovery",
+        "sourceType": "DB",
+        "sourceRef": "seeded: pending probe",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "CENTRAL_STORE_BACKUP_AVAILABLE_AT_F6 == true",
+        "status": "UNKNOWN"
+      },
+      {
+        "id": "claim-risk-renderer-regression-controlled",
+        "sourceType": "STATIC",
+        "sourceRef": "seeded: pending probe",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "RISK[\"renderer-regression\"]@FRONT[\"f1-s1-spine\"].STATUS == \"CONTROLLED\"",
+        "status": "UNKNOWN"
+      },
+      {
+        "id": "claim-risk-renderer-regression-accepted",
+        "sourceType": "STATIC",
+        "sourceRef": "seeded: pending probe",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "RISK[\"renderer-regression\"]@FRONT[\"f1-s1-spine\"].STATUS == \"ACCEPTED\"",
+        "status": "UNKNOWN"
+      },
+      {
+        "id": "claim-risk-renderer-regression-closed",
+        "sourceType": "STATIC",
+        "sourceRef": "seeded: pending probe",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "RISK[\"renderer-regression\"]@FRONT[\"f1-s1-spine\"].STATUS == \"CLOSED\"",
+        "status": "UNKNOWN"
+      },
+      {
+        "id": "claim-risk-font-license-unverified-controlled",
+        "sourceType": "STATIC",
+        "sourceRef": "scribe-probe:ls -la /home/vakarve/project/kamishibai/.claude/research/ && grep -n '散布' /home/vakarve/project/kamishibai/SPEC.md（報告 16k 存在；SPEC:307 §7.2「TsangerJinKai02 不隨包散布」、SPEC:548 §15 NO-GO 已入冊）@2026-08-16T10:39:59+08:00",
+        "observedAt": "2026-08-16T10:39:59+08:00",
+        "validUntil": "2026-08-16T13:39:59+08:00",
+        "authorityRank": 1,
+        "predicate": "RISK[\"font-license-unverified\"]@FRONT[\"f0-preflight\"].STATUS == \"CONTROLLED\"",
+        "status": "PASS"
+      },
+      {
+        "id": "claim-risk-font-license-unverified-accepted",
+        "sourceType": "STATIC",
+        "sourceRef": "seeded: pending probe",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "RISK[\"font-license-unverified\"]@FRONT[\"f0-preflight\"].STATUS == \"ACCEPTED\"",
+        "status": "UNKNOWN"
+      },
+      {
+        "id": "claim-risk-font-license-unverified-closed",
+        "sourceType": "STATIC",
+        "sourceRef": "seeded: pending probe",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "RISK[\"font-license-unverified\"]@FRONT[\"f0-preflight\"].STATUS == \"CLOSED\"",
+        "status": "UNKNOWN"
+      },
+      {
+        "id": "claim-risk-central-store-overwrite-controlled",
+        "sourceType": "STATIC",
+        "sourceRef": "seeded: pending probe",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "RISK[\"central-store-overwrite\"]@FRONT[\"f6-endgame\"].STATUS == \"CONTROLLED\"",
+        "status": "UNKNOWN"
+      },
+      {
+        "id": "claim-risk-central-store-overwrite-accepted",
+        "sourceType": "STATIC",
+        "sourceRef": "seeded: pending probe",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "RISK[\"central-store-overwrite\"]@FRONT[\"f6-endgame\"].STATUS == \"ACCEPTED\"",
+        "status": "UNKNOWN"
+      },
+      {
+        "id": "claim-risk-central-store-overwrite-closed",
+        "sourceType": "STATIC",
+        "sourceRef": "seeded: pending probe",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "RISK[\"central-store-overwrite\"]@FRONT[\"f6-endgame\"].STATUS == \"CLOSED\"",
+        "status": "UNKNOWN"
+      },
+      {
+        "id": "claim-route-noto-serif-fallback-closed",
+        "sourceType": "STATIC",
+        "sourceRef": "seeded: pending probe",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "ROUTE[\"noto-serif-fallback\"].STATUS == \"CLOSED\"",
+        "status": "UNKNOWN"
+      },
+      {
+        "id": "claim-route-noto-serif-fallback-unsafe",
+        "sourceType": "STATIC",
+        "sourceRef": "seeded: pending probe",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "ROUTE[\"noto-serif-fallback\"].STATUS == \"UNSAFE\"",
+        "status": "UNKNOWN"
+      },
+      {
+        "id": "claim-route-noto-serif-fallback-requires-authority",
+        "sourceType": "STATIC",
+        "sourceRef": "seeded: pending probe",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "ROUTE[\"noto-serif-fallback\"].STATUS == \"REQUIRES_AUTHORITY\"",
+        "status": "UNKNOWN"
+      },
+      {
+        "id": "claim-route-kamishibai-sdk-flat-name-closed",
+        "sourceType": "UI",
+        "sourceRef": "operator-attested: 使用者於 npmjs.com 建立 org「kamishibai」成功之畫面（截圖「Created new organization: kamishibai!」，operator 親見 2026-08-16 約 10:30+0800）；npm registry 為書記官不可及維度，未經探針重探，故以 operator 供給證據入冊、權級降為 3",
+        "observedAt": "2026-08-16T10:30:00+08:00",
+        "validUntil": "2026-08-16T13:30:00+08:00",
+        "authorityRank": 3,
+        "predicate": "ROUTE[\"kamishibai-sdk-flat-name\"].STATUS == \"CLOSED\"",
+        "status": "PASS"
+      },
+      {
+        "id": "claim-route-kamishibai-sdk-flat-name-unsafe",
+        "sourceType": "STATIC",
+        "sourceRef": "seeded: pending probe",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "ROUTE[\"kamishibai-sdk-flat-name\"].STATUS == \"UNSAFE\"",
+        "status": "UNKNOWN"
+      },
+      {
+        "id": "claim-route-kamishibai-sdk-flat-name-requires-authority",
+        "sourceType": "STATIC",
+        "sourceRef": "seeded: pending probe",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "ROUTE[\"kamishibai-sdk-flat-name\"].STATUS == \"REQUIRES_AUTHORITY\"",
+        "status": "UNKNOWN"
+      },
+      {
+        "id": "claim-loss-outcome-1",
+        "sourceType": "LOG",
+        "sourceRef": "seeded: pending probe",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "UNACCEPTABLE_OUTCOME[\"遷移完成前既有 plugin renderer 被破壞\"].ABSENT == true",
+        "status": "UNKNOWN"
+      },
+      {
+        "id": "claim-loss-outcome-2",
+        "sourceType": "LOG",
+        "sourceRef": "scribe-probe:find /home/vakarve/project/kamishibai -type f \\( -name \"*.ttf\" -o -name \"*.otf\" -o -name \"*.woff\" -o -name \"*.woff2\" \\)（count=0）@2026-08-16T10:39:59+08:00",
+        "observedAt": "2026-08-16T10:39:59+08:00",
+        "validUntil": "2026-08-16T13:39:59+08:00",
+        "authorityRank": 1,
+        "predicate": "UNACCEPTABLE_OUTCOME[\"未經授權查證的 TsangerJinKai02 字體被嵌入公開發佈物\"].ABSENT == true",
+        "status": "PASS"
+      },
+      {
+        "id": "claim-loss-outcome-3",
+        "sourceType": "LOG",
+        "sourceRef": "seeded: pending probe",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "UNACCEPTABLE_OUTCOME[\"戰役 token 預算耗盡於簿記而無世界增量\"].ABSENT == true",
+        "status": "UNKNOWN"
+      },
+      {
+        "id": "claim-loss-residual-spec-decision-coverage",
+        "sourceType": "DB",
+        "sourceRef": "探測深度不足以判定：map.md「Decisions so far」12 條決策對 SPEC.md 附錄 A 12 列票號索引為 12/12，但該索引係 SPEC 自述、僅到章節層級，未逐條比對內容等價；原 FAIL 之依據（SPEC.md 不存在）已失效，降 UNKNOWN 待指揮官仲裁",
+        "observedAt": "2026-08-16T10:39:59+08:00",
+        "validUntil": "2026-08-16T13:39:59+08:00",
+        "authorityRank": 1,
+        "predicate": "SPEC_DECISION_COVERAGE >= 1.0",
+        "status": "UNKNOWN"
+      },
+      {
+        "id": "claim-loss-victory-unattainable",
+        "sourceType": "DB",
+        "sourceRef": "seeded: pending probe",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "STRATEGIC_VICTORY_UNATTAINABLE_UNDER_CURRENT_CONSTRAINTS == true",
+        "status": "UNKNOWN"
+      },
+      {
+        "id": "claim-readiness-actor",
+        "sourceType": "UI",
+        "sourceRef": "seeded: pending probe",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "ACTOR[\"sa-operator\"].VERIFIED == true",
+        "status": "UNKNOWN"
+      },
+      {
+        "id": "claim-readiness-session",
+        "sourceType": "UI",
+        "sourceRef": "seeded: pending probe",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "SESSION[\"kamishibai-sdk-v1-session-1\"].CONTEXT[\"campaign-root\"].READY == true",
+        "status": "UNKNOWN"
+      },
+      {
+        "id": "claim-readiness-target",
+        "sourceType": "DB",
+        "sourceRef": "scribe-probe:ls -1 /home/vakarve/project/kamishibai/@2026-08-16T10:17:16+08:00",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "TARGET[\"kamishibai-sdk-v1\"].CARDINALITY == 1",
+        "status": "PASS"
+      },
+      {
+        "id": "claim-readiness-control",
+        "sourceType": "UI",
+        "sourceRef": "seeded: pending probe",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "CONTROL[\"kamishibai-sdk-v1\"].VISIBLE_ENABLED_UNOBSTRUCTED == true",
+        "status": "UNKNOWN"
+      },
+      {
+        "id": "claim-readiness-authority",
+        "sourceType": "API",
+        "sourceRef": "seeded: pending probe",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "ACTOR[\"sa-operator\"].AUTHORIZED_FOR[\"WriteSpecMdFromWayfinderDecisions\"] == true",
+        "status": "UNKNOWN"
+      },
+      {
+        "id": "claim-readiness-prereq-wayfinder-issues-all-resolved",
+        "sourceType": "DB",
+        "sourceRef": "scribe-probe:grep -l 'Status: resolved' /home/vakarve/project/kamishibai/.claude/wayfinder/kamishibai-sdk/issues/*@2026-08-16T10:17:16+08:00",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "ACTION[\"WriteSpecMdFromWayfinderDecisions\"].REQUIREMENT[\"wayfinder-issues-all-resolved\"].SATISFIED == true",
+        "status": "PASS"
+      },
+      {
+        "id": "claim-readiness-prereq-repo-tracked-tree-clean",
+        "sourceType": "DB",
+        "sourceRef": "scribe-probe:git -C /home/vakarve/project/kamishibai diff --stat@2026-08-16T10:17:16+08:00",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "ACTION[\"WriteSpecMdFromWayfinderDecisions\"].REQUIREMENT[\"repo-tracked-tree-clean\"].SATISFIED == true",
+        "status": "PASS"
+      },
+      {
+        "id": "claim-baseline-repoSpecFiles",
+        "sourceType": "DB",
+        "sourceRef": "scribe-probe:ls -1 /home/vakarve/project/kamishibai/@2026-08-16T10:17:16+08:00",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "WORLD[\"kamishibai-sdk-v1\"].DIMENSION[\"repoSpecFiles\"] == \"ABSENT\"",
+        "status": "PASS"
+      },
+      {
+        "id": "claim-baseline-npmPackageName",
+        "sourceType": "DB",
+        "sourceRef": "scribe-probe:ls -1 /home/vakarve/project/kamishibai/@2026-08-16T10:17:16+08:00",
+        "observedAt": "2026-08-16T10:17:16+08:00",
+        "validUntil": "2026-08-16T13:17:16+08:00",
+        "authorityRank": 1,
+        "predicate": "WORLD[\"kamishibai-sdk-v1\"].DIMENSION[\"npmPackageName\"] == \"UNDECIDED\"",
+        "status": "PASS"
+      },
+      {
+        "id": "claim-world-repoSpecFiles-spec-present",
+        "sourceType": "DB",
+        "sourceRef": "scribe-probe:ls -la /home/vakarve/project/kamishibai/SPEC.md /home/vakarve/project/kamishibai/AGENTS.md（SPEC.md 31k、AGENTS.md 9.2k 皆存在）@2026-08-16T10:39:59+08:00",
+        "observedAt": "2026-08-16T10:39:59+08:00",
+        "validUntil": "2026-08-16T13:39:59+08:00",
+        "authorityRank": 1,
+        "predicate": "WORLD[\"kamishibai-sdk-v1\"].DIMENSION[\"repoSpecFiles\"] == \"SPEC_PRESENT\"",
+        "status": "PASS"
+      },
+      {
+        "id": "claim-world-npmPackageName-decided",
+        "sourceType": "DB",
+        "sourceRef": "scribe-probe:grep -n \"@kamishibai/sdk\" /home/vakarve/project/kamishibai/SPEC.md（SPEC:539 §15「@kamishibai/sdk（已定案）」、SPEC:439 §10.3 npx 入口）@2026-08-16T10:39:59+08:00",
+        "observedAt": "2026-08-16T10:39:59+08:00",
+        "validUntil": "2026-08-16T13:39:59+08:00",
+        "authorityRank": 1,
+        "predicate": "WORLD[\"kamishibai-sdk-v1\"].DIMENSION[\"npmPackageName\"] == \"DECIDED\"",
+        "status": "PASS"
+      }
+    ],
+    "observerHealth": [],
+    "cleanupDebt": []
+  },
+  "riskRegister": [
+    {
+      "id": "renderer-regression",
+      "affectedFrontId": "f1-s1-spine",
+      "protectedAssetId": "existing-plugin-renderers",
+      "threat": "SDK 骨幹與既有 golden-template／render_map.py 共用路徑；探測時 repo 內尚無任何 SDK 程式碼，既有 plugin 檔未被觸碰，機率評為中",
+      "status": "OPEN",
+      "probability": 2,
+      "impact": 4,
+      "score": 8,
+      "unacceptableThreshold": 12,
+      "guard": "SDK 只新增檔案，不改既有 plugin 檔；每片封緘前跑既有 renderer 冒煙",
+      "stopCondition": "既有 renderer 冒煙失敗",
+      "recoveryAction": "git 還原 SDK 變更並回報回歸指紋",
+      "statusChecks": {
+        "CONTROLLED": {
+          "evidenceClaimIds": [
+            "claim-risk-renderer-regression-controlled"
+          ]
+        },
+        "ACCEPTED": {
+          "evidenceClaimIds": [
+            "claim-risk-renderer-regression-accepted"
+          ]
+        },
+        "CLOSED": {
+          "evidenceClaimIds": [
+            "claim-risk-renderer-regression-closed"
+          ]
+        }
+      }
+    },
+    {
+      "id": "font-license-unverified",
+      "affectedFrontId": "f0-preflight",
+      "protectedAssetId": "kamishibai-repo-main",
+      "threat": "TsangerJinKai02 再散布授權未查證；探測時 repo 內零字體二進位、且已宣告 Noto Serif TC 退路，機率評為低但衝擊仍高",
+      "status": "CONTROLLED",
+      "probability": 1,
+      "impact": 4,
+      "score": 4,
+      "unacceptableThreshold": 12,
+      "guard": "verdict 未以證據入冊前，出廠字體一律停留在 Noto Serif TC",
+      "stopCondition": "出現任何將 TsangerJinKai02 檔案加入 repo 的動作",
+      "recoveryAction": "移除字體檔並改回 Noto Serif TC",
+      "statusChecks": {
+        "CONTROLLED": {
+          "evidenceClaimIds": [
+            "claim-risk-font-license-unverified-controlled"
+          ]
+        },
+        "ACCEPTED": {
+          "evidenceClaimIds": [
+            "claim-risk-font-license-unverified-accepted"
+          ]
+        },
+        "CLOSED": {
+          "evidenceClaimIds": [
+            "claim-risk-font-license-unverified-closed"
+          ]
+        }
+      }
+    },
+    {
+      "id": "central-store-overwrite",
+      "affectedFrontId": "f6-endgame",
+      "protectedAssetId": "central-store",
+      "threat": "終局寫入 ~/.kamishibai/ 時可能覆寫模板與產物正本且無備份",
+      "status": "OPEN",
+      "probability": 2,
+      "impact": 4,
+      "score": 8,
+      "unacceptableThreshold": 12,
+      "guard": "寫入前先備份，且只寫入明確路徑",
+      "stopCondition": "備份不可得時停止寫入",
+      "recoveryAction": "自備份還原並回讀 manifest",
+      "statusChecks": {
+        "CONTROLLED": {
+          "evidenceClaimIds": [
+            "claim-risk-central-store-overwrite-controlled"
+          ]
+        },
+        "ACCEPTED": {
+          "evidenceClaimIds": [
+            "claim-risk-central-store-overwrite-accepted"
+          ]
+        },
+        "CLOSED": {
+          "evidenceClaimIds": [
+            "claim-risk-central-store-overwrite-closed"
+          ]
+        }
+      }
+    }
+  ],
+  "blockers": [],
+  "battlefields": [
+    {
+      "id": "f0-preflight",
+      "operationType": "SHAPING",
+      "effort": "MAIN",
+      "status": "COMPLETE",
+      "objective": "把 wayfinder 地圖的決策蒸餾成 repo 內權威文本，並清掉字體授權與套件命名兩個未決點",
+      "entryState": "SPEC_ONLY_IN_WAYFINDER_MAP",
+      "terminalState": "SPEC_AND_AGENTS_LANDED",
+      "entryClaimId": "claim-front-f0-preflight-entry",
+      "exitClaimId": "claim-front-f0-preflight-exit",
+      "evidenceClaimIds": [
+        "claim-front-f0-preflight-entry",
+        "claim-front-f0-preflight-exit"
+      ],
+      "mutationScope": [
+        "CreateSpecMd",
+        "CreateAgentsMd"
+      ],
+      "recovery": {
+        "status": "READY",
+        "action": "蒸餾產出被否決時，以 git 還原 repo 至 27b537d，不保留半成品文本",
+        "steps": [
+          "git -C /home/vakarve/project/kamishibai status --short 確認變更範圍",
+          "git checkout -- 受影響檔案；新增檔案直接刪除",
+          "確認 HEAD 仍為 27b537dc1ddc8ca1b6df7a123c1111519db76036"
+        ],
+        "readinessPredicate": "GIT_TRACKED_TREE_CLEAN == true AND HEAD_SHA == 27b537dc1ddc8ca1b6df7a123c1111519db76036",
+        "successPredicate": "REPO_TRACKED_STATE_EQUALS_27B537D",
+        "stopCondition": "git 還原指令回報衝突或 HEAD 非預期",
+        "evidenceClaimIds": [
+          "claim-front-f0-preflight-recovery"
+        ]
+      },
+      "allowedNextStatuses": [
+        "COMPLETE",
+        "BLOCKED"
+      ],
+      "deferReason": "",
+      "owner": "sa-operator",
+      "timeBudgetMinutes": 240
+    },
+    {
+      "id": "f1-s1-spine",
+      "operationType": "DECISIVE",
+      "effort": "MAIN",
+      "status": "ACTIVE",
+      "objective": "S1 骨幹：render CLI 能把 fixture IR 渲染成通過 lint 的離線單檔 HTML",
+      "entryState": "SPEC_AND_AGENTS_LANDED",
+      "terminalState": "S1_SPINE_SEALED",
+      "entryClaimId": "claim-front-f1-s1-spine-entry",
+      "exitClaimId": "claim-front-f1-s1-spine-exit",
+      "evidenceClaimIds": [
+        "claim-front-f1-s1-spine-entry",
+        "claim-front-f1-s1-spine-exit"
+      ],
+      "mutationScope": [
+        "CreateSdkSpine",
+        "AddRenderCli"
+      ],
+      "recovery": {
+        "status": "READY",
+        "action": "骨幹實作失控時回退至 F0 終局 commit，不留半成品 SDK",
+        "steps": [
+          "停止實作",
+          "git 還原至 F0 終局 commit",
+          "重新以 /contract 收斂驗收條件"
+        ],
+        "readinessPredicate": "GIT_TRACKED_TREE_CLEAN_AT_F1_ENTRY == true",
+        "successPredicate": "REPO_TRACKED_STATE_EQUALS_F0_TERMINAL_COMMIT",
+        "stopCondition": "既有 plugin renderer 行為出現回歸",
+        "evidenceClaimIds": [
+          "claim-front-f1-s1-spine-recovery"
+        ]
+      },
+      "allowedNextStatuses": [
+        "ACTIVE",
+        "DEFERRED"
+      ],
+      "deferReason": "",
+      "owner": "sa-operator",
+      "timeBudgetMinutes": 480
+    },
+    {
+      "id": "f2-s2-book1",
+      "operationType": "DECISIVE",
+      "effort": "SUPPORT",
+      "status": "PENDING",
+      "objective": "S2：book 長文路徑、中央產物庫、open/list、replay",
+      "entryState": "S1_SPINE_SEALED",
+      "terminalState": "S2_BOOK1_SEALED",
+      "entryClaimId": "claim-front-f2-s2-book1-entry",
+      "exitClaimId": "claim-front-f2-s2-book1-exit",
+      "evidenceClaimIds": [
+        "claim-front-f2-s2-book1-entry",
+        "claim-front-f2-s2-book1-exit"
+      ],
+      "mutationScope": [
+        "AddBookPipeline",
+        "CreateCentralStore"
+      ],
+      "recovery": {
+        "status": "NOT_READY",
+        "action": "中央儲存庫寫入前先備份既有內容，失敗時還原",
+        "steps": [
+          "停止寫入",
+          "還原 ~/.kamishibai/ 備份",
+          "git 還原 repo 變更"
+        ],
+        "readinessPredicate": "CENTRAL_STORE_BACKUP_AVAILABLE_AT_F2 == true",
+        "successPredicate": "CENTRAL_STORE_STATE_RESTORED",
+        "stopCondition": "中央儲存庫既有內容被覆寫且無備份",
+        "evidenceClaimIds": [
+          "claim-front-f2-s2-book1-recovery"
+        ]
+      },
+      "allowedNextStatuses": [
+        "ACTIVE",
+        "DEFERRED"
+      ],
+      "deferReason": "",
+      "owner": "sa-operator",
+      "timeBudgetMinutes": 480
+    },
+    {
+      "id": "f3-s3-book2",
+      "operationType": "DECISIVE",
+      "effort": "SUPPORT",
+      "status": "PENDING",
+      "objective": "S3：diagram plugin、deck/slide、export、snapshot",
+      "entryState": "S2_BOOK1_SEALED",
+      "terminalState": "S3_BOOK2_SEALED",
+      "entryClaimId": "claim-front-f3-s3-book2-entry",
+      "exitClaimId": "claim-front-f3-s3-book2-exit",
+      "evidenceClaimIds": [
+        "claim-front-f3-s3-book2-entry",
+        "claim-front-f3-s3-book2-exit"
+      ],
+      "mutationScope": [
+        "AddDiagramPlugin",
+        "AddDeckAndExport"
+      ],
+      "recovery": {
+        "status": "NOT_READY",
+        "action": "外掛破壞核心渲染時停用外掛並回退 commit",
+        "steps": [
+          "停用 diagram plugin",
+          "git 還原至 S2 終局 commit",
+          "重跑測試"
+        ],
+        "readinessPredicate": "GIT_TRACKED_TREE_CLEAN_AT_F3_ENTRY == true",
+        "successPredicate": "CORE_RENDER_TESTS_GREEN",
+        "stopCondition": "核心渲染測試轉紅且無法定位",
+        "evidenceClaimIds": [
+          "claim-front-f3-s3-book2-recovery"
+        ]
+      },
+      "allowedNextStatuses": [
+        "ACTIVE",
+        "DEFERRED"
+      ],
+      "deferReason": "",
+      "owner": "sa-operator",
+      "timeBudgetMinutes": 480
+    },
+    {
+      "id": "f4-s4-docs",
+      "operationType": "SUSTAINING",
+      "effort": "SUPPORT",
+      "status": "PENDING",
+      "objective": "S4：錯字表、工作日誌",
+      "entryState": "S3_BOOK2_SEALED",
+      "terminalState": "S4_DOCS_SEALED",
+      "entryClaimId": "claim-front-f4-s4-docs-entry",
+      "exitClaimId": "claim-front-f4-s4-docs-exit",
+      "evidenceClaimIds": [
+        "claim-front-f4-s4-docs-entry",
+        "claim-front-f4-s4-docs-exit"
+      ],
+      "mutationScope": [
+        "AddDocsSurface"
+      ],
+      "recovery": {
+        "status": "NOT_READY",
+        "action": "文件層變更以 git 還原即可",
+        "steps": [
+          "git 還原至 S3 終局 commit"
+        ],
+        "readinessPredicate": "GIT_TRACKED_TREE_CLEAN_AT_F4_ENTRY == true",
+        "successPredicate": "REPO_TRACKED_STATE_EQUALS_S3_TERMINAL_COMMIT",
+        "stopCondition": "文件變更牽動核心程式碼",
+        "evidenceClaimIds": [
+          "claim-front-f4-s4-docs-recovery"
+        ]
+      },
+      "allowedNextStatuses": [
+        "ACTIVE",
+        "DEFERRED"
+      ],
+      "deferReason": "",
+      "owner": "sa-operator",
+      "timeBudgetMinutes": 240
+    },
+    {
+      "id": "f5-s5-delivery",
+      "operationType": "SUSTAINING",
+      "effort": "SUPPORT",
+      "status": "PENDING",
+      "objective": "S5：serve/HMR、留言迴路、config/setup/debug",
+      "entryState": "S4_DOCS_SEALED",
+      "terminalState": "S5_DELIVERY_SEALED",
+      "entryClaimId": "claim-front-f5-s5-delivery-entry",
+      "exitClaimId": "claim-front-f5-s5-delivery-exit",
+      "evidenceClaimIds": [
+        "claim-front-f5-s5-delivery-entry",
+        "claim-front-f5-s5-delivery-exit"
+      ],
+      "mutationScope": [
+        "AddServeAndHmr",
+        "AddCommentLoop"
+      ],
+      "recovery": {
+        "status": "NOT_READY",
+        "action": "serve 層引入外部請求或破壞離線性時回退",
+        "steps": [
+          "停止 serve 相關變更",
+          "git 還原至 S4 終局 commit",
+          "重跑離線性檢查"
+        ],
+        "readinessPredicate": "GIT_TRACKED_TREE_CLEAN_AT_F5_ENTRY == true",
+        "successPredicate": "RENDER_OUTPUT_ZERO_EXTERNAL_REQUESTS",
+        "stopCondition": "渲染產物出現外部請求",
+        "evidenceClaimIds": [
+          "claim-front-f5-s5-delivery-recovery"
+        ]
+      },
+      "allowedNextStatuses": [
+        "ACTIVE",
+        "DEFERRED"
+      ],
+      "deferReason": "",
+      "owner": "sa-operator",
+      "timeBudgetMinutes": 480
+    },
+    {
+      "id": "f6-endgame",
+      "operationType": "DECISIVE",
+      "effort": "SUPPORT",
+      "status": "PENDING",
+      "objective": "雙客戶驗證：design 建立 Kami 標準模板、book 以 SDK 渲染一本既有書、產出新舊 snapshot 對照",
+      "entryState": "S5_DELIVERY_SEALED",
+      "terminalState": "DUAL_CLIENT_VERIFIED",
+      "entryClaimId": "claim-front-f6-endgame-entry",
+      "exitClaimId": "claim-front-f6-endgame-exit",
+      "evidenceClaimIds": [
+        "claim-front-f6-endgame-entry",
+        "claim-front-f6-endgame-exit"
+      ],
+      "mutationScope": [
+        "PublishKamiTemplate",
+        "RenderExistingBook",
+        "WriteSnapshotComparison"
+      ],
+      "recovery": {
+        "status": "NOT_READY",
+        "action": "中央儲存庫正本受損時自備份還原，並停止再次寫入",
+        "steps": [
+          "停止寫入 ~/.kamishibai/",
+          "自備份還原模板與產物正本",
+          "回讀 manifest 確認一致"
+        ],
+        "readinessPredicate": "CENTRAL_STORE_BACKUP_AVAILABLE_AT_F6 == true",
+        "successPredicate": "CENTRAL_STORE_MANIFEST_READBACK_CONSISTENT",
+        "stopCondition": "任何來源顯示正本已被覆寫",
+        "evidenceClaimIds": [
+          "claim-front-f6-endgame-recovery"
+        ]
+      },
+      "allowedNextStatuses": [
+        "ACTIVE",
+        "DEFERRED"
+      ],
+      "deferReason": "",
+      "owner": "sa-operator",
+      "timeBudgetMinutes": 480
+    }
+  ],
+  "decision": {
+    "activeFrontId": "f1-s1-spine",
+    "chosenTactic": "F0 前置終結後交接主攻至 F1-s1-spine，以 /contract → TDD → /seal 打出 S1 render CLI 骨幹",
+    "nextAction": "在主 session 完成 S1 的 /baransu:contract，收斂骨幹驗收條件（尚無 code mutation）",
+    "contribution": "DIRECT_ADVANCE",
+    "rationale": "S1 骨幹是五片的地基：render CLI 能把 fixture IR 渲染成通過 lint 的離線單檔 HTML 之前，S2–S5 無可驗收之物",
+    "pivotCondition": "F1 同一失敗指紋出現兩次（沿 culminationPolicy.repeatFailureLimit=2 的機械形式承接，具體失敗面待指揮官確認）",
+    "pivotClaimId": "claim-front-f1-s1-spine-pivot",
+    "candidates": [
+      {
+        "frontId": "f0-preflight",
+        "eligible": false,
+        "expectedVictoryCriterionIds": [],
+        "unmetVictoryCriteria": 4,
+        "remainingTransitions": 3,
+        "riskScore": 4,
+        "costMinutes": 0,
+        "blockingRiskIds": [],
+        "totalScore": 450,
+        "ineligibilityReason": "戰場狀態為 COMPLETE，不列入主攻候選"
+      },
+      {
+        "frontId": "f1-s1-spine",
+        "eligible": true,
+        "expectedVictoryCriterionIds": [
+          "vc1-five-seals"
+        ],
+        "unmetVictoryCriteria": 3,
+        "remainingTransitions": 4,
+        "riskScore": 8,
+        "costMinutes": 0,
+        "blockingRiskIds": [],
+        "totalScore": 380,
+        "ineligibilityReason": ""
+      },
+      {
+        "frontId": "f2-s2-book1",
+        "eligible": false,
+        "expectedVictoryCriterionIds": [
+          "vc1-five-seals"
+        ],
+        "unmetVictoryCriteria": 3,
+        "remainingTransitions": 4,
+        "riskScore": 0,
+        "costMinutes": 0,
+        "blockingRiskIds": [],
+        "totalScore": 340,
+        "ineligibilityReason": "mutation 戰場的 recovery 尚未 READY"
+      },
+      {
+        "frontId": "f3-s3-book2",
+        "eligible": false,
+        "expectedVictoryCriterionIds": [
+          "vc1-five-seals"
+        ],
+        "unmetVictoryCriteria": 3,
+        "remainingTransitions": 4,
+        "riskScore": 0,
+        "costMinutes": 0,
+        "blockingRiskIds": [],
+        "totalScore": 340,
+        "ineligibilityReason": "mutation 戰場的 recovery 尚未 READY"
+      },
+      {
+        "frontId": "f4-s4-docs",
+        "eligible": false,
+        "expectedVictoryCriterionIds": [
+          "vc1-five-seals"
+        ],
+        "unmetVictoryCriteria": 3,
+        "remainingTransitions": 3,
+        "riskScore": 0,
+        "costMinutes": 0,
+        "blockingRiskIds": [],
+        "totalScore": 330,
+        "ineligibilityReason": "mutation 戰場的 recovery 尚未 READY"
+      },
+      {
+        "frontId": "f5-s5-delivery",
+        "eligible": false,
+        "expectedVictoryCriterionIds": [
+          "vc1-five-seals"
+        ],
+        "unmetVictoryCriteria": 3,
+        "remainingTransitions": 4,
+        "riskScore": 0,
+        "costMinutes": 0,
+        "blockingRiskIds": [],
+        "totalScore": 340,
+        "ineligibilityReason": "mutation 戰場的 recovery 尚未 READY"
+      },
+      {
+        "frontId": "f6-endgame",
+        "eligible": false,
+        "expectedVictoryCriterionIds": [
+          "vc2-kami-template",
+          "vc3-book-render",
+          "vc4-snapshot-compare"
+        ],
+        "unmetVictoryCriteria": 1,
+        "remainingTransitions": 4,
+        "riskScore": 8,
+        "costMinutes": 0,
+        "blockingRiskIds": [],
+        "totalScore": 180,
+        "ineligibilityReason": "mutation 戰場的 recovery 尚未 READY"
+      }
+    ]
+  },
+  "strategicClarity": {
+    "status": "CLEAR",
+    "candidateMainEffortIds": [
+      "f1-s1-spine"
+    ],
+    "unresolvedDecisions": [],
+    "unclearCauses": [],
+    "route": "EXECUTION_READY",
+    "wayfinderMapPath": ".claude/wayfinder/kamishibai-sdk/map.md"
+  },
+  "progress": {
+    "lastWorldStateChangeAt": "2026-08-16T10:39:59+08:00",
+    "activeFrontStartedAt": "2026-08-16T10:49:38+08:00",
+    "sameFailureFingerprintCount": 0,
+    "alternateReady": false,
+    "culminationPolicy": {
+      "reanalysisMinutes": 30,
+      "highRiskMinutes": 90,
+      "repeatFailureLimit": 2
+    },
+    "culminationRisk": "LOW"
+  },
+  "executionAssessment": {
+    "mode": "AUTONOMOUS",
+    "automationActuatorStatus": "UNKNOWN",
+    "outcomeStatus": "CHANGED",
+    "targetIdentity": "EXACT_ONE",
+    "actorIdentity": "UNKNOWN",
+    "actionContract": "UNKNOWN",
+    "mutationObserved": true,
+    "worldStateChanged": true,
+    "attemptCount": 1,
+    "sameFailureFingerprintCount": 0,
+    "deadlineSeconds": 300,
+    "deadlineExceeded": false,
+    "failureFingerprint": ""
+  },
+  "intervention": {
+    "status": "NOT_REQUIRED",
+    "mode": "NONE",
+    "phase": "NONE",
+    "requestedAction": "",
+    "reason": "",
+    "returnOfControl": ""
+  },
+  "lossMinimizationAssessment": {
+    "victoryUnattainable": {
+      "predicate": "STRATEGIC_VICTORY_UNATTAINABLE_UNDER_CURRENT_CONSTRAINTS == true",
+      "evidenceClaimIds": [
+        "claim-loss-victory-unattainable"
+      ]
+    },
+    "unacceptableOutcomeChecks": [
+      {
+        "outcome": "遷移完成前既有 plugin renderer 被破壞",
+        "predicate": "UNACCEPTABLE_OUTCOME[\"遷移完成前既有 plugin renderer 被破壞\"].ABSENT == true",
+        "evidenceClaimIds": [
+          "claim-loss-outcome-1"
+        ]
+      },
+      {
+        "outcome": "未經授權查證的 TsangerJinKai02 字體被嵌入公開發佈物",
+        "predicate": "UNACCEPTABLE_OUTCOME[\"未經授權查證的 TsangerJinKai02 字體被嵌入公開發佈物\"].ABSENT == true",
+        "evidenceClaimIds": [
+          "claim-loss-outcome-2"
+        ]
+      },
+      {
+        "outcome": "戰役 token 預算耗盡於簿記而無世界增量",
+        "predicate": "UNACCEPTABLE_OUTCOME[\"戰役 token 預算耗盡於簿記而無世界增量\"].ABSENT == true",
+        "evidenceClaimIds": [
+          "claim-loss-outcome-3"
+        ]
+      }
+    ],
+    "residualLossMeasurements": [
+      {
+        "id": "spec-decision-coverage",
+        "metric": "SPEC_DECISION_COVERAGE",
+        "displayText": "SPEC.md 覆蓋地圖 Decisions so far 的決策條目比例",
+        "predicate": "SPEC_DECISION_COVERAGE >= 1.0",
+        "evidenceClaimIds": [
+          "claim-loss-residual-spec-decision-coverage"
+        ]
+      }
+    ],
+    "preservedGains": []
+  },
+  "terminalAssessment": {
+    "status": "IN_PROGRESS",
+    "requiredAuthority": "",
+    "alternativeRoutes": [
+      {
+        "id": "noto-serif-fallback",
+        "status": "OPEN",
+        "reason": "TsangerJinKai02 再散布授權若查證為不可，出廠字體改用 Noto Serif TC，戰役不因字體停擺",
+        "statusChecks": {
+          "CLOSED": {
+            "predicate": "ROUTE[\"noto-serif-fallback\"].STATUS == \"CLOSED\"",
+            "evidenceClaimIds": [
+              "claim-route-noto-serif-fallback-closed"
+            ]
+          },
+          "UNSAFE": {
+            "predicate": "ROUTE[\"noto-serif-fallback\"].STATUS == \"UNSAFE\"",
+            "evidenceClaimIds": [
+              "claim-route-noto-serif-fallback-unsafe"
+            ]
+          },
+          "REQUIRES_AUTHORITY": {
+            "predicate": "ROUTE[\"noto-serif-fallback\"].STATUS == \"REQUIRES_AUTHORITY\"",
+            "evidenceClaimIds": [
+              "claim-route-noto-serif-fallback-requires-authority"
+            ]
+          }
+        }
+      },
+      {
+        "id": "kamishibai-sdk-flat-name",
+        "status": "CLOSED",
+        "reason": "@kamishibai org 若無法註冊，退回已驗證可用的 kamishibai-sdk 平名",
+        "statusChecks": {
+          "CLOSED": {
+            "predicate": "ROUTE[\"kamishibai-sdk-flat-name\"].STATUS == \"CLOSED\"",
+            "evidenceClaimIds": [
+              "claim-route-kamishibai-sdk-flat-name-closed"
+            ]
+          },
+          "UNSAFE": {
+            "predicate": "ROUTE[\"kamishibai-sdk-flat-name\"].STATUS == \"UNSAFE\"",
+            "evidenceClaimIds": [
+              "claim-route-kamishibai-sdk-flat-name-unsafe"
+            ]
+          },
+          "REQUIRES_AUTHORITY": {
+            "predicate": "ROUTE[\"kamishibai-sdk-flat-name\"].STATUS == \"REQUIRES_AUTHORITY\"",
+            "evidenceClaimIds": [
+              "claim-route-kamishibai-sdk-flat-name-requires-authority"
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "latestVerifiedAdvance": {
+    "at": "2026-08-16T10:39:59+08:00",
+    "scopeIdentity": "kamishibai-sdk-v1",
+    "dimension": "repoSpecFiles",
+    "from": "ABSENT",
+    "to": "SPEC_PRESENT",
+    "beforeValue": "ABSENT",
+    "afterValue": "SPEC_PRESENT",
+    "beforeClaimId": "claim-baseline-repoSpecFiles",
+    "afterClaimId": "claim-world-repoSpecFiles-spec-present",
+    "strategicEffect": "ENABLES_NEXT_TRANSITION",
+    "effectTargetId": "f1-s1-spine",
+    "evidence": [
+      "開冊基線探測（10:17:16）：repo 根僅 README.md，SPEC.md 不存在",
+      "本輪探測（10:39:59）：SPEC.md 31k 與 AGENTS.md 9.2k 皆在 repo 根，commit 2919955 與 origin/main 同",
+      "同批世界增量另含 npmPackageName：UNDECIDED → DECIDED（SPEC:539 @kamishibai/sdk 已定案，見 claim-world-npmPackageName-decided）"
+    ],
+    "evidenceClaimIds": [
+      "claim-baseline-repoSpecFiles",
+      "claim-world-repoSpecFiles-spec-present"
+    ]
+  },
+  "takeoverReadiness": {
+    "actionId": "WriteSpecMdFromWayfinderDecisions",
+    "actorId": "sa-operator",
+    "sessionId": "kamishibai-sdk-v1-session-1",
+    "contextId": "campaign-root",
+    "scopeIdentity": "kamishibai-sdk-v1",
+    "operable": {
+      "status": "UNKNOWN",
+      "evidence": [
+        "冷啟動：僅 repo 檔案系統一維已由書記官探測，其餘控制面尚未取得探針證據"
+      ],
+      "actorCheck": {
+        "evidenceClaimIds": [
+          "claim-readiness-actor"
+        ]
+      },
+      "sessionCheck": {
+        "evidenceClaimIds": [
+          "claim-readiness-session"
+        ]
+      },
+      "targetCheck": {
+        "evidenceClaimIds": [
+          "claim-readiness-target"
+        ]
+      },
+      "controlCheck": {
+        "requiredConditions": [
+          "VISIBLE",
+          "ENABLED",
+          "UNOBSTRUCTED"
+        ],
+        "evidenceClaimIds": [
+          "claim-readiness-control"
+        ]
+      }
+    },
+    "executable": {
+      "status": "UNKNOWN",
+      "objective": "在 /home/vakarve/project/kamishibai 根目錄寫入一份自 wayfinder 地圖 Decisions so far 蒸餾的 SPEC.md",
+      "authorizedActor": "sa-operator",
+      "authorityCheck": {
+        "evidenceClaimIds": [
+          "claim-readiness-authority"
+        ]
+      },
+      "prerequisiteChecks": [
+        {
+          "requirementId": "wayfinder-issues-all-resolved",
+          "evidenceClaimIds": [
+            "claim-readiness-prereq-wayfinder-issues-all-resolved"
+          ]
+        },
+        {
+          "requirementId": "repo-tracked-tree-clean",
+          "evidenceClaimIds": [
+            "claim-readiness-prereq-repo-tracked-tree-clean"
+          ]
+        }
+      ],
+      "steps": [
+        "寫入 /home/vakarve/project/kamishibai/SPEC.md 一份初稿（內容取自 map.md Decisions so far 與 issues/ 12 張已結票，含落定的 npm 套件名）"
+      ],
+      "prohibitedActions": [
+        "不得改動 .claude/wayfinder/ 既有決策票",
+        "不得在授權 verdict 入冊前加入任何字體二進位檔",
+        "不得改動 baransu／common plugin 檔案"
+      ],
+      "sideEffects": [
+        "repo 根目錄新增一個未追蹤檔案 SPEC.md"
+      ],
+      "timeoutSeconds": 60,
+      "stopCondition": "SPEC.md 寫入一次即停；或發現地圖決策彼此衝突即停",
+      "recoveryAction": "刪除 /home/vakarve/project/kamishibai/SPEC.md，repo 追蹤狀態回到 27b537d"
+    },
+    "verifiable": {
+      "status": "PASS",
+      "expectedWorldDelta": [
+        "repo 根目錄出現 SPEC.md",
+        "SPEC.md 內記載落定的 npm 套件名"
+      ],
+      "expectedWorldDeltaContracts": [
+        {
+          "scopeIdentity": "kamishibai-sdk-v1",
+          "dimension": "repoSpecFiles",
+          "beforeValue": "ABSENT",
+          "afterValue": "SPEC_PRESENT",
+          "baselineCheckId": "baseline-repoSpecFiles"
+        },
+        {
+          "scopeIdentity": "kamishibai-sdk-v1",
+          "dimension": "npmPackageName",
+          "beforeValue": "UNDECIDED",
+          "afterValue": "DECIDED",
+          "baselineCheckId": "baseline-npmPackageName"
+        }
+      ],
+      "baselineChecks": [
+        {
+          "id": "baseline-repoSpecFiles",
+          "evidenceClaimIds": [
+            "claim-baseline-repoSpecFiles"
+          ]
+        },
+        {
+          "id": "baseline-npmPackageName",
+          "evidenceClaimIds": [
+            "claim-baseline-npmPackageName"
+          ]
+        }
+      ],
+      "evidenceSources": [
+        "repo 檔案系統回讀",
+        "SPEC.md 內容比對地圖 Decisions so far"
+      ],
+      "successPredicates": [
+        "SPEC_MD_PRESENT == true"
+      ],
+      "failurePredicates": [
+        "SPEC.md 寫入後與地圖 Decisions so far 衝突",
+        "時限到時 repo 根仍無 SPEC.md"
+      ],
+      "unknownOutcomeRule": "NO_DECISIVE_EVIDENCE_BY_DEADLINE",
+      "deadlineAt": "2026-08-16T14:17:16+08:00"
+    },
+    "result": "NOT_READY"
+  }
+}
