@@ -31,7 +31,7 @@ SDK 以什麼形態存在讓 Agent 最好用？候選：CLI 工具（skill 用 B
    - `setup` — 初始化環境（建中央儲存庫、裝渲染依賴如 Playwright）
    - `ui` — 等 12 號票決議後補掛
 
-3. **Agent 好用語意**：全指令支援 `--json`（成功與失敗皆機器可讀），視需求加 `--yaml`；驗證錯誤指到 block tree 路徑而非 HTML 行號；exit code 穩定分類；`render`/`replay` 冪等；`--dry-run` 只驗不寫。安裝：npm 發佈、`npx kamishibai` 免安裝可用；WSL＋nvm 的 `zsh -lic` 慣例入文件。
+3. **Agent 好用語意**：全指令支援 `--json`（成功與失敗皆機器可讀），視需求加 `--yaml`；驗證錯誤指到 block tree 路徑而非 HTML 行號；exit code 穩定分類；`render`/`replay` 冪等；`--dry-run` 只驗不寫。安裝：npm 發佈、`npx @kamishibai/sdk` 免安裝可用（修訂：原文「npx kamishibai」成文早於 09 的命名實查，裸名已被佔；2026-08-16 F0 裁決改為 scoped 形式，安裝後 bin 名仍為 `kamishibai`）；WSL＋nvm 的 `zsh -lic` 慣例入文件。
 
 **附帶定案**：模板包專案描述檔格式候選定為 **TOML**（隨 import-template 決議，細部欄位歸 11 號票）。
 
