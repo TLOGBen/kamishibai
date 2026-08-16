@@ -29,6 +29,15 @@ export const hello = (name) => \`你好，\${name}\`
 | prose | 散文段落 |
 | table | 表格資料 |
 
+清單也是合法構件——含 block-level 內容的 prose 會以 \`<div class="prose">\` 承載：
+
+- 項目一
+- 項目二
+- 項目三
+
+1. 有序項目一
+2. 有序項目二
+
 :::note
 這是 callout（note 型）。另有 warn 型。
 :::

@@ -12,13 +12,16 @@ const CRITERIA = Object.freeze({
     'test_render_body_blocks',
     'test_render_escapes_document_metadata',
     'test_render_unknown_template_is_validation_error',
+    'test_render_callout_in_list_enters_block_tree',
+    'test_render_prose_container_is_valid_html',
   ],
   A2: ['test_a2_embedded_ir_fields'],
-  A3: ['test_a3_no_external_resource_forms'],
+  A3: ['test_a3_no_external_resource_forms', 'test_a3_forbidden_forms_match_contract_verbatim'],
   A4: [
     'test_a4_woff2_data_uri_embedded',
     'test_a4_no_tsanger_font_shipped',
     'test_a4_declared_families_are_embedded',
+    'test_a4_every_needed_face_is_embedded',
     'test_a5_lint_fails_on_banned_font_string',
   ],
   A5: [

@@ -114,6 +114,35 @@ body {
   text-underline-offset: 3px;
 }
 
+/* 清單承載於 <div class="prose">（<p> 不能包 block-level）。
+   行高與段距與 .prose 一致，縮排剛好讓標記懸在欄寬外緣。 */
+.prose ul,
+.prose ol {
+  margin: 0 0 18px;
+  padding-left: 1.4em;
+  line-height: 1.55;
+}
+
+.prose li {
+  margin: 0 0 6px;
+  line-height: 1.55;
+}
+
+.prose li:last-child {
+  margin-bottom: 0;
+}
+
+.prose li::marker {
+  color: var(--text-muted);
+}
+
+.prose ul ul,
+.prose ul ol,
+.prose ol ul,
+.prose ol ol {
+  margin: 6px 0 0;
+}
+
 .prose code,
 .callout code,
 .quote code,

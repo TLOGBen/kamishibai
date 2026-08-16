@@ -1,0 +1,80 @@
+# scribe round-3 consolidation probes (light) @ 2026-08-16T16:12:52+0800
+# campaign root: /home/vakarve/project/kamishibai
+
+=== P1 git status --porcelain ===
+ M CONTRACT.md
+ M fixtures/book-sample.md
+ M src/core/lint.js
+ M src/parser/container.js
+ M src/parser/tokens.js
+ M tests/a1-render.test.js
+ M tests/a3-offline.test.js
+ M tests/a5-lint.test.js
+ M tests/a6-selfproof.test.js
+ M tests/a7-cli-contract.test.js
+?? .strategic-advance/kamishibai-sdk-v1/artifacts/probe-round3-20260816T161252+0800.txt
+=== P1b git diff --stat ===
+ CONTRACT.md                   |  4 +--
+ fixtures/book-sample.md       | 18 ++++++++++
+ src/core/lint.js              |  6 ++--
+ src/parser/container.js       |  7 ++--
+ src/parser/tokens.js          | 12 ++++++-
+ tests/a1-render.test.js       | 79 +++++++++++++++++++++++++++++++++++++++++++
+ tests/a3-offline.test.js      |  6 ++++
+ tests/a5-lint.test.js         | 12 ++++++-
+ tests/a6-selfproof.test.js    |  9 +++--
+ tests/a7-cli-contract.test.js | 10 ++++++
+ 10 files changed, 151 insertions(+), 12 deletions(-)
+=== P2 Read .git/refs/heads/main ===
+f2603e929bb60c35298c8b9003503ac002468687
+=== P2b Read .git/refs/remotes/origin/main ===
+f2603e929bb60c35298c8b9003503ac002468687
+=== P2c Read .git/logs/HEAD (tail 2) ===
+27b537dc1ddc8ca1b6df7a123c1111519db76036 2919955e43f292816563665c1b8bc0371d64ec4a vakarve <vakarve@csie.io> 1786847264 +0800	commit: feat: F0 前置完成——SPEC.md/AGENTS.md 蒸餾入庫、字體授權 NO-GO 定案（Noto Serif TC＋Maple Mono CN）、套件名定 @kamishibai/sdk
+2919955e43f292816563665c1b8bc0371d64ec4a f2603e929bb60c35298c8b9003503ac002468687 vakarve <vakarve@csie.io> 1786866020 +0800	commit: feat: S1 核心脊椎實作——IR schema/Markdown 超集/SSR render/Kami 長文模板/CLI 四指令，47 測試綠（seal 三輪、11 findings 修復、突變加固；封緘待補 2 項條文強度後蓋章）
+=== P3 seal records: grep -rl 'sealed' .claude/ ===
+(rc=1)
+=== P3b find .claude -iname '*seal*' ===
+(rc=0)
+=== P3c ls -1 .claude/ ===
+research
+wayfinder
+=== P4 IR-embedded html, tracked surface: grep -rl --include='*.html' application/kamishibai+json (repo root) ===
+/home/vakarve/project/kamishibai/.claude/wayfinder/kamishibai-sdk/map.html
+/home/vakarve/project/kamishibai/.strategic-advance/kamishibai-sdk-v1/sand-table.html
+/home/vakarve/project/kamishibai/fixtures/broken/banned-font.html
+/home/vakarve/project/kamishibai/fixtures/broken/external-script.html
+/home/vakarve/project/kamishibai/fixtures/broken/ir-schema-invalid.html
+=== P4b same scan restricted to out-test/ (gitignored SDK test outputs) ===
+24
+=== P4c git ls-files '*.html' (tracked html) ===
+.claude/wayfinder/kamishibai-sdk/map.html
+.strategic-advance/kamishibai-sdk-v1/sand-table.html
+fixtures/broken/banned-font.html
+fixtures/broken/external-script.html
+fixtures/broken/ir-schema-invalid.html
+fixtures/broken/no-ir.html
+=== P4d .gitignore ===
+node_modules/
+out/
+out-test/
+*.log
+=== P5 snapshot artifacts: ls artifacts | grep -ci snapshot ===
+0
+=== P6 font binaries in repo (excl node_modules) ===
+0
+=== P6b banned-font guard & shipped family ===
+/home/vakarve/project/kamishibai/src/core/lint.js:22:  { needle: 'TsangerJinKai', code: CODES.BANNED_FONT, why: '未取得再散布授權的字體' },
+/home/vakarve/project/kamishibai/templates/kami/long-form/styles.css:16:  --serif: 'Noto Serif TC', serif;
+=== P7 SPEC/AGENTS present (F1 entry) ===
+.rw-r--r-- 9.2k vakarve 16 Aug 10:24 /home/vakarve/project/kamishibai/AGENTS.md
+.rw-r--r--  31k vakarve 16 Aug 10:27 /home/vakarve/project/kamishibai/SPEC.md
+=== P8 package.json identity ===
+2:  "name": "@kamishibai/sdk",
+3:  "version": "0.1.0",
+=== P9 src/ tests/ file counts ===
+27
+10
+
+# note: repo-root grep at P4 did not list out-test/*.html although P4b proves 22 matches there;
+# both raw results recorded verbatim, no reconciliation asserted.

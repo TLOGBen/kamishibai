@@ -75,7 +75,8 @@ export function containerPlugin(md) {
     alt: ['paragraph', 'reference', 'blockquote', 'list'],
   })
 
-  md.renderer.rules.kami_container_open = (tokens, idx) =>
-    `<div class="callout callout-${tokens[idx].info}">`
-  md.renderer.rules.kami_container_close = () => '</div>'
+  // 刻意不註冊 kami_container 的 renderer rule：callout 的標記屬於模板層
+  // （templates/…/components.js 的 Callout 元件），parser 不得自行產出一份。
+  // 容器 token 一律由 walkTokens 轉成 callout block，永遠不會走到 renderer；
+  // 「body 有 callout 標記則 IR 必有 callout block」的反向對稱斷言看守這一點。
 }

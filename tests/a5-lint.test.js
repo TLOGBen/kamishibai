@@ -49,6 +49,8 @@ describe('A5 lint 閘門', () => {
       expect(e.path.length).toBeGreaterThan(0)
       expect(e.code).toMatch(/^KSB_/)
       expect(typeof e.message).toBe('string')
+      // 診斷文字是 Agent 唯一的「為什麼」——空字串等於沒有診斷
+      expect(e.message.length, `${e.code} 的 message 不得為空`).toBeGreaterThan(0)
     }
   })
 
@@ -98,7 +100,15 @@ describe('A5 lint 閘門', () => {
 
     const r = runCli(['lint', artifact, '--json'])
     expect(r.code).toBe(1)
-    const got = new Set(JSON.parse(r.stdout).errors.map((e) => e.code))
+    const errors = JSON.parse(r.stdout).errors
+    const got = new Set(errors.map((e) => e.code))
+
+    // 五碼各自的診斷文字都要有內容，且逐字帶出合約的禁形字樣
+    for (const err of errors) {
+      expect(err.message.length, `${err.code} 的 message 不得為空`).toBeGreaterThan(0)
+      const rule = EXTERNAL_RULES.find((x) => x.code === err.code)
+      if (rule) expect(err.message, `${err.code} 的診斷須含禁形字樣`).toContain(rule.what)
+    }
 
     // 由規則清單反推應有的錯誤碼：日後新增規則卻沒有 fixture 會直接失敗，
     // 而不是靜靜地多一條從未被觸發過的死規則。

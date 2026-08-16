@@ -15,6 +15,43 @@ const availableChunks = () =>
     .map((w) => countFaces(readFileSync(require.resolve(`@fontsource/noto-serif-tc/${w}.css`), 'utf8')))
     .reduce((a, b) => a + b, 0)
 
+/**
+ * Independent @font-face parser and range matcher.
+ *
+ * Deliberately NOT importing src/render/fonts.js: an oracle built from the code
+ * under test moves with it, so truncating `selectFaces` would shrink both sides
+ * and stay green — which is exactly how the missing lower bound survived.
+ */
+const parseFacesIndependently = (cssText) => {
+  const faces = []
+  for (const block of cssText.matchAll(/@font-face\s*\{([^}]*)\}/g)) {
+    const range = /unicode-range\s*:\s*([^;]+);/.exec(block[1])
+    if (range === null) continue
+    const ranges = range[1]
+      .split(',')
+      .map((chunk) => chunk.trim().replace(/^U\+/i, ''))
+      .filter((chunk) => chunk.length > 0)
+      .map((chunk) => {
+        const [lo, hi] = chunk.split('-')
+        return { lo: parseInt(lo, 16), hi: parseInt(hi ?? lo, 16) }
+      })
+    faces.push({ unicodeRange: range[1].trim(), ranges })
+  }
+  return faces
+}
+
+/** Visible text of the rendered document (a subset of what render() sees). */
+const visibleText = (html) => {
+  const body = html.slice(html.indexOf('<body>'), html.indexOf('<script type='))
+  return body
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+}
+
 describe('A4 字體子集內嵌', () => {
   let html
 
@@ -38,6 +75,29 @@ describe('A4 字體子集內嵌', () => {
     // 每個內嵌 @font-face 都保留自己的 unicode-range
     expect(countFaces(html)).toBe(embedded)
     expect((html.match(/unicode-range:/g) ?? []).length).toBe(embedded)
+  })
+
+  it('test_a4_every_needed_face_is_embedded: 子集有下界——正文用到的每個 chunk 都必須在', () => {
+    const artifactCss = html.slice(html.indexOf('<style>'), html.indexOf('</style>'))
+    const codepoints = new Set()
+    for (const ch of visibleText(html)) codepoints.add(ch.codePointAt(0))
+
+    // 正文實際用到的 chunk（獨立算出，不經 src/render/fonts.js）
+    const needed = ['400', '700'].flatMap((weight) =>
+      parseFacesIndependently(
+        readFileSync(require.resolve(`@fontsource/noto-serif-tc/${weight}.css`), 'utf8'),
+      ).filter((face) =>
+        face.ranges.some((r) => [...codepoints].some((cp) => cp >= r.lo && cp <= r.hi)),
+      ),
+    )
+
+    // 語料橫跨拉丁與中日韓，應該用到不只一個 chunk——否則下界形同虛設
+    expect(new Set(needed.map((f) => f.unicodeRange)).size).toBeGreaterThan(1)
+
+    const missing = needed
+      .map((f) => f.unicodeRange)
+      .filter((range) => !artifactCss.includes(`unicode-range:${range}`))
+    expect(missing, `正文用得到卻沒內嵌的 chunk：${missing.join(' | ')}`).toEqual([])
   })
 
   it('test_a4_no_tsanger_font_shipped: 全檔不得出現 TsangerJinKai', () => {

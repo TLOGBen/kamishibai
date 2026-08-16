@@ -29,6 +29,29 @@ export function hello(name) {
 這是一個 callout 區塊——note 型。
 :::
 
+:::warn
+這是一個 callout 區塊——warn 型。語料必須窮舉 CALLOUT_VARIANTS 的每一項，
+否則某個變體從未被渲染過，標籤寫錯也沒有任何測試會發現。
+:::
+
+## 第二節　清單
+
+- 純清單項目一
+- 純清單項目二（不含 callout，走 prose 的清單 HTML 路徑）
+
+有序清單同樣是 block-level，容器選擇不能只認 `ul`：
+
+1. 有序項目一
+2. 有序項目二
+
+清單內也可以放 callout——它必須進 block tree，而不是被壓成 prose 裡的原始 HTML：
+
+- 項目：前置說明
+  :::warn
+  清單內的警示。
+  :::
+- 項目：後續說明
+
 # 第二章　島嶼
 
 ```raw-html

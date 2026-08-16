@@ -119,7 +119,17 @@ export function walkTokens(tokens, ctx) {
       case 'bullet_list_open':
       case 'ordered_list_open': {
         const close = findClose(tokens, i)
-        out.push(B.prose(renderSlice(tokens.slice(i, close + 1))))
+        const slice = tokens.slice(i, close + 1)
+        // S1 沒有 list block 型別，所以清單平常整塊編譯成 prose 的 HTML。
+        // 但清單裡若有 callout，那條路會把它壓成 prose 內的原始 HTML——
+        // IR 就此有損，且 callout 會改由 markdown-it 的 renderer 產出，
+        // 形成第二條與 Callout 元件不同源的渲染路徑。寧可拆掉清單外框，
+        // 也要讓 callout 以真正的 block 進 block tree。
+        if (slice.some((token) => token.type === 'kami_container_open')) {
+          out.push(...walkTokens(tokens.slice(i + 1, close), ctx))
+        } else {
+          out.push(B.prose(renderSlice(slice)))
+        }
         i = close + 1
         break
       }

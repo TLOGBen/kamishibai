@@ -1,4 +1,4 @@
-import { rmSync, readFileSync } from 'node:fs'
+import { rmSync, readFileSync, statSync } from 'node:fs'
 import { isAbsolute } from 'node:path'
 import { describe, it, expect, beforeAll } from 'vitest'
 import { runCli, outDir } from './helpers.js'
@@ -29,6 +29,9 @@ describe('A7 CLI 介面契約', () => {
     expect(isAbsolute(out.artifact)).toBe(true)
     expect(Number.isInteger(out.bytes)).toBe(true)
     expect(out.bytes).toBeGreaterThan(0)
+    // 真值錨：bytes 必須等於磁碟上的實際大小。少了這條，`html.length`
+    // （UTF-16 code unit）也會全綠，而中文長文每篇短報上千 bytes。
+    expect(out.bytes, 'bytes 必須等於產物檔案的實際位元組數').toBe(statSync(out.artifact).size)
   })
 
   it('test_a7_all_four_commands_support_json: 四指令成功路徑 stdout 皆為單一 JSON 物件', () => {
@@ -168,6 +171,9 @@ describe('A7 CLI 介面契約', () => {
     for (const err of jsonLint.errors) {
       expect(humanLint.stdout).toContain(err.code)
       expect(humanLint.stdout).toContain(err.path)
+      // 兩路同文：人類路的診斷必須就是 --json 的那一句，不得另生一套或省略
+      expect(err.message.length).toBeGreaterThan(0)
+      expect(humanLint.stdout, `人類路缺少 ${err.code} 的診斷文字`).toContain(err.message)
     }
 
     // 多錯案：單錯案抓不到「把 N 寫死成 1」這種突變
@@ -177,6 +183,13 @@ describe('A7 CLI 介面契約', () => {
     const humanMulti = runCli(['lint', multiArtifact])
     expect(jsonMulti.errors.length).toBeGreaterThan(1)
     expect(humanMulti.stdout).toContain(`✖ ${jsonMulti.errors.length} 個問題`)
+    // 同一組逐筆斷言也要套到多錯案，否則只有 KSB_IR_MISSING 一種 message 被釘住
+    for (const err of jsonMulti.errors) {
+      expect(err.message.length, `${err.code} 的 message 不得為空`).toBeGreaterThan(0)
+      expect(humanMulti.stdout, `人類路缺少 ${err.code} 的診斷文字`).toContain(err.message)
+      expect(humanMulti.stdout).toContain(err.code)
+      expect(humanMulti.stdout).toContain(err.path)
+    }
 
     // lint 成功路同樣兩路比對：人類輸出須帶出 --json 的 artifact 路徑，
     // 否則把成功行改成一句固定文字也測不出來。

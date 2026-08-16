@@ -26,6 +26,12 @@ describe('A3 零外部請求', () => {
     expect(hits).toEqual([])
   })
 
+  it('test_a3_forbidden_forms_match_contract_verbatim: 禁形字樣逐字對齊 CONTRACT Verbatim Constants', () => {
+    // CONTRACT Verbatim Constants「外部資源禁形」整行，逐字抄錄、順序一致
+    const VERBATIM = ['<link …href=', '<script …src=', '<img …src="http', '@import', 'url(http']
+    expect(EXTERNAL_RULES.map((rule) => rule.what)).toEqual(VERBATIM)
+  })
+
   it('test_a3_content_external_links_survive: 內容中的外部 <a href> 不受影響', () => {
     expect(html).toContain('<a href="https://openslide.org/">')
   })

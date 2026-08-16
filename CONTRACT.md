@@ -1,4 +1,5 @@
 # CONTRACT — S1 核心脊椎：IR＋render＋Kami 長文模板＋CLI 基本盤
+> STATUS: sealed（2026-08-16）— 五點全符合：A1–A10 逐條過、7 表面全釘死、跨 UI 單一 formatter、九組常數 byte-exact、突變 2/2 被攔（歷三輪 21 findings 修復後 clean）
 
 ## 目標
 repo 內出現可運作的 SDK 第一片：CLI 能把 Markdown 超集或 block tree JSON 渲染成
@@ -27,12 +28,12 @@ G2：本任務無既有程式面可讀（greenfield），查無程式陷阱；�
 ## 錯不起表面（Surface Inventory）
 | 表面 | 格式 | 釘死測試 |
 |------|------|----------|
-| render `--json` 成功 | `{"ok":true,"artifact":"<abs path>","bytes":<int>}` 無其他頂層鍵 | test_render_json_shape |
-| lint `--json` 失敗 | `{"ok":false,"errors":[{"path":"<block path>","code":"<KSB_*>","message":"…"}]}` | test_lint_json_errors |
+| render `--json` 成功 | `{"ok":true,"artifact":"<abs path>","bytes":<int>}` 無其他頂層鍵；**`bytes` ≡ 產物檔案真實 UTF-8 byte 長度（與 `statSync(artifact).size` 相等，禁 UTF-16 code unit 數）**（第三輪補釘 F-1） | test_render_json_shape |
+| lint `--json` 失敗 | `{"ok":false,"errors":[{"path":"<block path>","code":"<KSB_*>","message":"<非空字串>"}]}`；**每筆 message 長度 > 0，且人類路輸出逐字包含同一 message**（終審補釘 F-1） | test_lint_json_errors |
 | example stdout | 即合法輸入本身（round-trip 由 A6 釘） | test_example_roundtrip |
 | schema stdout | JSON Schema（draft 2020-12，`$schema` 欄位必在） | test_schema_valid |
 | 人類可讀輸出（四指令） | 與 `--json` 共用同一結果物件經單一 formatter 產生；兩路皆有測試（**含 lint 成功路**，seal 補釘 F5）；**錯誤摘要行 `✖ {N} 個問題：` 之 N ≡ errors.length**（複驗補釘 F-D） | test_formatter_shared_both_paths |
-| 渲染本體（每個 block 型別） | body 內有可辨識輸出；**IR 有則 body 有**對稱斷言（seal 補釘 F4） | test_render_body_blocks |
+| 渲染本體（每個 block 型別） | body 內有可辨識輸出；**IR 有則 body 有**對稱斷言（seal 補釘 F4）；**callout 標籤文字逐 variant 釘死（note→NOTE、warn→WARNING），且 fixture 語料窮舉 `CALLOUT_VARIANTS` 每一項**（終審補釘 F-2）；**`<p class="prose">` 內禁出現 `<ul|ol|div|pre|table|blockquote`（block-level 內容改用 `<div class="prose">` 容器），對稱斷言之 `block.html` 須非空**（第二輪終審補釘 F-A/F-B）；**字體子集有下界：內嵌 face 數 ≡ 依產物正文 codepoints 重算之應選 face 數**（F-C） | test_render_body_blocks |
 | `--help --json` / `--version --json` | `{"ok":true,"help":"…"}`（help 非空）/ `{"ok":true,"version":"<semver>"}`（version 比對 engine，頂層鍵恰為所列） | test_a7_explicit_help_and_version_exit_zero |
 
 ## Verbatim Constants

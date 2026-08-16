@@ -22,6 +22,19 @@ describe('A6 防試錯自證', () => {
     const html = readFileSync(`${OUT_DIR}/e.html`, 'utf8')
     expect(extractIrScripts(html)).toHaveLength(1)
     expect(runCli(['lint', `${OUT_DIR}/e.html`]).code).toBe(0)
+
+    // example 是 Agent 的教材：不能缺構件，尤其不能缺曾經踩雷的清單。
+    // 缺了的話 Agent 就學不到「清單也是合法輸入」。
+    expect(example.stdout, 'example doc 應示範無序清單').toMatch(/^-\s+\S/m)
+    expect(example.stdout, 'example doc 應示範有序清單').toMatch(/^\d+\.\s+\S/m)
+
+    const body = html.slice(html.indexOf('<body>'), html.indexOf('<script type='))
+    expect(body).toMatch(/<div class="prose">\s*<ul>/)
+    expect(body).toMatch(/<div class="prose">\s*<ol>/)
+    // 教材本身也不得產出無效 HTML
+    for (const [, inner] of body.matchAll(/<p class="prose">([\s\S]*?)<\/p>/g)) {
+      expect(/<(ul|ol|div|pre|table|blockquote)\b/i.test(inner)).toBe(false)
+    }
   })
 
   it('test_a6_shell_pipe_roundtrip: 合約字面的 shell pipeline（真實非阻塞 stdin）exit 0', () => {
@@ -36,7 +49,12 @@ describe('A6 防試錯自證', () => {
   })
 
   it('test_a6_pipe_survives_multiple_chunks: >64KB 管線輸入與同檔案渲染 byte-identical', () => {
-    const source = readFileSync(join(repoRoot, 'fixtures/book-sample.md'), 'utf8').repeat(120)
+    // 重複次數由 fixture 大小推算：語料日後增刪都自動維持「剛好跨過一個
+    // 64KiB readSync 緩衝」的量級，不會因為寫死次數而變成無謂的巨檔。
+    const unit = readFileSync(join(repoRoot, 'fixtures/book-sample.md'), 'utf8')
+    const repeats = Math.ceil(80_000 / Buffer.byteLength(unit, 'utf8'))
+    const source = unit.repeat(repeats)
+
     mkdirSync(OUT_DIR, { recursive: true })
     const bigInput = join(OUT_DIR, 'big-input.md')
     writeFileSync(bigInput, source, 'utf8')
@@ -56,7 +74,7 @@ describe('A6 防試錯自證', () => {
 
     // 位元相等才抓得到「靜默截斷」——被截斷的管線讀取一樣 exit 0、一樣有合法 IR
     expect(readFileSync(viaPipe)).toEqual(readFileSync(viaFile))
-  })
+  }, 30_000) // 兩次大文件全渲染，預設 5s 不夠
 
   it('test_a6_pipe_survives_stalling_writer: 寫入端多次長暫停（累計 >10s）仍讀滿不截斷', () => {
     mkdirSync(OUT_DIR, { recursive: true })

@@ -11,9 +11,9 @@ import { liveMarkup, styleRegions } from './scan.js'
  * drift between the linter and the criterion that motivates it.
  */
 export const EXTERNAL_RULES = Object.freeze([
-  { re: /<link\b[^>]*\bhref\s*=/i, code: CODES.EXTERNAL_STYLESHEET, what: '<link … href=', scope: 'markup' },
-  { re: /<script\b[^>]*\bsrc\s*=/i, code: CODES.EXTERNAL_SCRIPT, what: '<script … src=', scope: 'markup' },
-  { re: /<img\b[^>]*\bsrc\s*=\s*["']?http/i, code: CODES.EXTERNAL_IMAGE, what: '<img … src="http', scope: 'markup' },
+  { re: /<link\b[^>]*\bhref\s*=/i, code: CODES.EXTERNAL_STYLESHEET, what: '<link …href=', scope: 'markup' },
+  { re: /<script\b[^>]*\bsrc\s*=/i, code: CODES.EXTERNAL_SCRIPT, what: '<script …src=', scope: 'markup' },
+  { re: /<img\b[^>]*\bsrc\s*=\s*["']?http/i, code: CODES.EXTERNAL_IMAGE, what: '<img …src="http', scope: 'markup' },
   { re: /@import/i, code: CODES.EXTERNAL_CSS_IMPORT, what: '@import', scope: 'css' },
   { re: /url\(\s*["']?http/i, code: CODES.EXTERNAL_CSS_URL, what: 'url(http', scope: 'css' },
 ])

@@ -3,7 +3,19 @@ import { manifest } from './manifest.js'
 
 const CALLOUT_LABELS = Object.freeze({ note: 'NOTE', warn: 'WARNING' })
 
-const Prose = (props) => h('p', { class: 'prose', innerHTML: props.block.html })
+/**
+ * Block-level flow content that `<p>` may not contain. A `<p>` wrapping a
+ * `<ul>` is invalid HTML: the parser implicitly closes the paragraph, so the
+ * real DOM becomes an empty `<p>`, a list that has escaped the `.prose`
+ * styling scope, and another empty `<p>`. Pick the container to match.
+ */
+const BLOCK_LEVEL_CONTENT = /<(?:ul|ol|div|pre|table|blockquote|figure|hr|h[1-6])\b/i
+
+const Prose = (props) =>
+  h(BLOCK_LEVEL_CONTENT.test(props.block.html) ? 'div' : 'p', {
+    class: 'prose',
+    innerHTML: props.block.html,
+  })
 
 const Quote = (props) =>
   h('blockquote', { class: 'quote' }, renderChildren(props.block.children))
