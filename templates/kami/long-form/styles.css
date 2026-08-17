@@ -235,6 +235,28 @@ body {
   border-bottom: 2px solid var(--accent-soft);
 }
 
+/* 密集表（五欄以上，如錯字修改表的六欄 findings）：欄寬一旦被 --measure
+   均分就窄到中文一字一行。寧可撐出下界、讓 .table-wrap 橫向捲動，
+   也不要把可讀性押在欄數上。以欄數選取而非新增 class——Table 元件
+   只吐 .table-wrap / .table 兩個 hook，模板樣式不得要求 IR 多帶資訊。 */
+.table:has(thead th:nth-child(5)) {
+  min-width: 660px;
+  font-size: 14px;
+}
+
+.table:has(thead th:nth-child(5)) th,
+.table:has(thead th:nth-child(5)) td {
+  padding: 8px 10px;
+}
+
+/* 第一欄常是頁碼／編號一類的短鍵，讓它不要被長文欄拉開。 */
+.table:has(thead th:nth-child(5)) th:first-child,
+.table:has(thead th:nth-child(5)) td:first-child {
+  white-space: nowrap;
+  width: 1%;
+  color: var(--text-secondary);
+}
+
 .island {
   margin: 0 0 22px;
 }
