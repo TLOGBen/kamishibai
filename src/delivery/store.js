@@ -100,12 +100,27 @@ export function archiveArtifact({ project, slug, html, copies = [], env = proces
   }
 
   const { name, path } = writeExclusive(dir, slug, html, now)
-  try {
-    writeFileSync(join(dir, `${name}${COPIES_SUFFIX}`), `${JSON.stringify(copies)}\n`, 'utf8')
-  } catch (cause) {
-    throw writeFailed(path, cause)
-  }
+  mergeCopiesIndex(dir, name, copies, path)
   return { name, path, dir }
+}
+
+/**
+ * Record delivery copies against a claimed name, merging with whatever the
+ * index already held (CONTRACT B2 — 已存在→不動既有檔案、僅追加).
+ *
+ * A name freed by a deleted artifact can be re-claimed by `wx`, and its sidecar
+ * may outlive the artifact. Writing the new list flat would silently drop the
+ * earlier delivery history — the index is a cumulative record, not a snapshot
+ * of the last render. Overwriting is only permitted because the content written
+ * is a superset of what was there.
+ */
+const mergeCopiesIndex = (dir, name, copies, artifactPath) => {
+  const merged = [...new Set([...readCopies(dir, name), ...copies])]
+  try {
+    writeFileSync(join(dir, `${name}${COPIES_SUFFIX}`), `${JSON.stringify(merged)}\n`, 'utf8')
+  } catch (cause) {
+    throw writeFailed(artifactPath, cause)
+  }
 }
 
 const readCopies = (dir, name) => {

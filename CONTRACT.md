@@ -14,7 +14,7 @@ Agent 能以 list 查專案呈現史、以 open 解析開啟、以 replay 從產
 ## 可斷言條文
 G2：觸及面為本 repo S1 程式（已逐檔審過三輪 seal）；新陷阱＝家目錄寫入與跨環境路徑，已升為 B1/B2 條文。
 - [ ] B1 **HOME 紀律**：所有中央庫路徑經單一解析函式，`KAMISHIBAI_HOME` 環境變數優先、預設 `~/.kamishibai`；**整個測試套件禁觸真實家目錄**（測試自我斷言其 HOME 為暫存目錄；CI 可驗）。
-- [ ] B2 **首觸安全閘**：真實執行首次寫入前探測庫根——不存在→建立並寫入 `created-by: kamishibai@<version>` 標記檔；已存在→不動既有檔案、僅追加（禁覆寫既存產物檔，同 slug 依 SPEC 走版本化/時戳尾綴）；**不覆寫須為機械性：產物寫入以 exclusive flag（`wx`）落檔、`EEXIST` 時重取唯一名重試（seal 補釘 F2）**。
+- [ ] B2 **首觸安全閘**：真實執行首次寫入前探測庫根——不存在→建立並寫入 `created-by: kamishibai@<version>` 標記檔；已存在→不動既有檔案、僅追加（禁覆寫既存產物檔，同 slug 依 SPEC 走版本化/時戳尾綴）；**不覆寫須為機械性：產物寫入以 exclusive flag（`wx`）落檔、`EEXIST` 時重取唯一名重試（seal 補釘 F2）；sidecar（copies.json 等一切庫內檔案）同受此律——既存 sidecar 以合併取代截斷（蓋章驗補釘 F8）**。
 - [ ] B3 render 完成後：中央庫 `artifacts/<專案>/<slug>.html` 正本存在，且與 `-o` 投遞副本 byte-identical；`--json` 輸出增列 `archived:"<abs path>"` 頂層鍵（原三鍵不變）。
 - [ ] B4 `list --json`：輸出當前專案全部產物之陣列，每筆恰含 `{name, template, createdAt, generator, artifact, copies}`；專案解析依「`--project` → `.kamishibai.toml` → git root → cwd」四層，測試至少覆蓋 `--project` 與 git root 兩層；**衍生名兩級驗證（seal 補釘 F1）：使用者明指的 `--project` 嚴格拒收非法名；衍生層（錨點檔／git root／cwd）改決定性正規化（空白→`-` 等）後採用——含空白目錄名下 render 必須 exit 0 且歸檔至正規化專案目錄（釘死測試必備）**。
 - [ ] B5 `open <name|latest> --dry-run`：解析中央庫並輸出目標絕對路徑 exit 0（不開瀏覽器）；查無 → exit 1 `KSB_ARTIFACT_NOT_FOUND`。

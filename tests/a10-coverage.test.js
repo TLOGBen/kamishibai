@@ -69,6 +69,7 @@ const CRITERIA = Object.freeze({
     'test_b2_existing_store_is_only_appended_to',
     'test_b2_slug_collision_gets_timestamp_suffix',
     'test_b2_archive_write_is_exclusive',
+    'test_b2_orphan_sidecar_is_merged_not_truncated',
   ],
   B3: [
     'test_render_json_shape',

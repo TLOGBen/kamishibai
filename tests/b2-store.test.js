@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, it, expect } from 'vitest'
@@ -64,6 +64,33 @@ describe('B2 首觸安全閘與中央庫佈局', () => {
     expect(readFileSync(squatter, 'utf8'), '既有同名檔不得被覆寫').toBe('SQUATTER\n')
     expect(archived).not.toBe(squatter)
     expect(archived.split('/').pop()).toMatch(/^book-sample-\d{8}T\d{9}Z(-\d+)?\.html$/)
+  })
+
+  it('test_b2_orphan_sidecar_is_merged_not_truncated: 孤兒 sidecar 被回收時 copies 併集保留舊記錄', () => {
+    const home = freshHome()
+    const firstCopy = `${OUT_DIR}/orphan-first.html`
+    const first = render(home, firstCopy, 'b2-orphan')
+    expect(first.code).toBe(0)
+    const archived = JSON.parse(first.stdout).archived
+    const sidecar = archived.replace(/\.html$/, '.copies.json')
+    expect(JSON.parse(readFileSync(sidecar, 'utf8'))).toEqual([firstCopy])
+
+    // 正本被移走，sidecar 成為孤兒——下一次同 slug 的 wx 會取回原名
+    rmSync(archived)
+
+    const secondCopy = `${OUT_DIR}/orphan-second.html`
+    const second = render(home, secondCopy, 'b2-orphan')
+    expect(second.code).toBe(0)
+    expect(JSON.parse(second.stdout).archived, 'wx 應取回被釋出的原名').toBe(archived)
+
+    // 索引是累積記錄，不是最後一次寫入的快照：截斷等於靜默丟失投遞史
+    const merged = JSON.parse(readFileSync(sidecar, 'utf8'))
+    expect(merged).toEqual([firstCopy, secondCopy])
+
+    // 併集而非串接：同一個投遞落點重複交付，索引不得長出重複條目
+    rmSync(archived)
+    expect(render(home, secondCopy, 'b2-orphan').code).toBe(0)
+    expect(JSON.parse(readFileSync(sidecar, 'utf8'))).toEqual([firstCopy, secondCopy])
   })
 
   it('test_b2_slug_collision_gets_timestamp_suffix: 同 slug 撞名不覆寫，改走時戳尾綴', () => {
