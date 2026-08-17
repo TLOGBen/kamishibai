@@ -1,29 +1,11 @@
 import { basename, extname } from 'node:path'
 import { readArtifact } from '../../delivery/read.js'
-import { extractIrPayloads } from '../../parser/artifact.js'
+import { readEmbeddedIr } from '../../parser/artifact.js'
 import { validateIr } from '../../core/validate.js'
 import { replayCreatedAt, templateKeyOf } from '../../core/ir.js'
 import { renderArtifact } from '../../render/index.js'
-import { CODES, EXIT, KsbError } from '../../core/errors.js'
+import { EXIT } from '../../core/errors.js'
 import { deliver } from '../deliver.js'
-
-const irError = (code, message) => new KsbError({ code, message, exitCode: EXIT.VALIDATION })
-
-/** Recover the IR envelope an artifact carries, or fail with a pinned code. */
-function readEmbeddedIr(html, path) {
-  const payloads = extractIrPayloads(html)
-  if (payloads.length === 0) {
-    throw irError(CODES.IR_MISSING, `no embedded IR found in ${path}; nothing to replay`)
-  }
-  if (payloads.length > 1) {
-    throw irError(CODES.IR_DUPLICATE, `${path} carries ${payloads.length} IR payloads, expected 1`)
-  }
-  try {
-    return JSON.parse(payloads[0])
-  } catch (cause) {
-    throw irError(CODES.IR_UNPARSABLE, `embedded IR in ${path} is not valid JSON: ${cause.message}`)
-  }
-}
 
 /**
  * `kamishibai replay <artifact> [-o out.html]`

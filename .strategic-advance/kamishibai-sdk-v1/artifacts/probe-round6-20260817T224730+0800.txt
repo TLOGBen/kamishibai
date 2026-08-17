@@ -1,0 +1,109 @@
+# scribe probe round6 @ 2026-08-17T22:47:30+08:00  root=/home/vakarve/project/kamishibai
+# 整編重量：light（一般世界增量後之預設）——重探事件包觸及之 gating claims ＋ 自選抽查 2
+# 探測面全部釘在 state.json 記載之戰役根絕對路徑；~/.kamishibai（中央庫）在根外，未探（scope pinning）
+
+$ date "+%Y-%m-%dT%H:%M:%S%z"
+2026-08-17T22:47:30+0800
+
+======== git 面（追蹤樹已乾淨——第五輪駁回事由消失）========
+$ git -C /home/vakarve/project/kamishibai status --short
+(空輸出)
+$ git -C /home/vakarve/project/kamishibai diff --stat
+(空輸出)
+$ git log --oneline -8
+ee882ee feat: S3a 完成並封緘——list block 入詞彙（callout-in-list 保外框）、deck/slide 家族＋kami/slides 模板＋離線播放、詞彙+根形雙層模板守衛、date 時區語意修復，112 測試綠
+291dadb chore: S2 合約歸檔入庫＋S3a 合約立約（list block＋deck/slide＋播放最小版）
+3acfcda docs: S2 封緘蓋章——B2 終審條文補丁（sidecar 索引/記錄語意），S2 交付鏈收官
+19383ab feat: S4 文件類輕客戶（delegate 試水溫）——錯字修改表＋工作日誌語料與 7 具名測試，87 測試綠
+a4cce3e fix: F8 sidecar 併集寫回——孤兒 sidecar 不再被截斷，80 測試綠
+b5a784f feat: S2 交付鏈完成——中央產物庫(KAMISHIBAI_HOME+首觸閘+wx原子寫)、list/open/replay、專案名兩級驗證(F1)、79 測試綠
+3867e21 feat: S1 封緘完成——三輪驗收 21 findings 全數修復，52 測試綠，CONTRACT 蓋章
+f2603e9 feat: S1 核心脊椎實作——IR schema/Markdown 超集/SSR render/Kami 長文模板/CLI 四指令，47 測試綠
+$ git status -sb | head -1
+## main...origin/main
+$ git log --oneline @{upstream}..HEAD   (unpushed; 空＝已推送)
+(空輸出)
+$ Read /home/vakarve/project/kamishibai/.git/refs/heads/main
+ee882ee2a25a710416c7bcf3edc76e12b9d6e407
+$ Read /home/vakarve/project/kamishibai/.git/refs/remotes/origin/main
+ee882ee2a25a710416c7bcf3edc76e12b9d6e407
+→ 第五輪之 M CONTRACT.md ＋未追蹤歸檔本已由 291dadb 收拾；git ls-files 確認兩份歸檔皆入庫。
+
+======== 封緘面（vc1／F2 exit／F3a exit／世界增量）========
+$ grep -n 'STATUS: sealed' CONTRACT.md .claude/archived/CONTRACT.md-1786881210 .claude/archived/CONTRACT.md-1786972817
+CONTRACT.md:2:> STATUS: sealed（2026-08-17）— 五點全符合：C1–C8 過、Verbatim 9/9 byte-equal、詞彙＋根形雙層守衛雙向釘死、突變 2/2 攔截（兩輪 6 findings：5 修復、1 列冊）   ← S3a
+.claude/archived/CONTRACT.md-1786972817:2:> STATUS: sealed（2026-08-17）— B1–B8 過（B2 依終審條文補丁）、Verbatim 7/7、兩輪 11 findings   ← S2
+.claude/archived/CONTRACT.md-1786881210:2:> STATUS: sealed（2026-08-16）— A1–A10 逐條過、九組常數 byte-exact、歷三輪 21 findings   ← S1
+$ Read CONTRACT.md 第 1 行
+# CONTRACT — S3a：list block＋deck/slide 家族＋播放模式最小版
+$ ls -la .claude/archived/
+CONTRACT.md-1786881210 (6.3k, S1)   CONTRACT.md-1786972817 (4.8k, S2)   ← 共 2 份，非情報所稱 3 份
+→ 封緘記錄 3 片（S1／S2／S3a）＝2 份歸檔 ＋ 1 份現地；S4 無 seal 記錄；S3b／S5 未開工。vc1 = 3／5 FAIL。
+
+======== S3b 未開工（F3b exit／vc4）========
+$ grep -rlEi 'diagram|snapshot|pptx' src tests templates
+src/delivery/store.js            ← S2 產物庫用詞，非 diagram／snapshot 產能
+$ grep -rli 'mermaid' src tests templates
+(0 命中)
+$ ls -1 src/cli/commands/
+example.js lint.js list.js open.js render.js replay.js schema.js   ← 七支，無 export／snapshot
+$ ls -1 .strategic-advance/kamishibai-sdk-v1/artifacts/ | grep -ci snapshot
+0
+→ F3b exit FAIL；vc4 FAIL（該產能正落在 S3b）。
+
+======== S3a 已落地（世界增量 repoSpecFiles）========
+$ find src -type f -name '*.js' | wc -l
+36
+$ ls -1 tests/*.test.js | wc -l ; grep -h '^ *it(' tests/*.test.js | wc -l
+24 ; 111
+   （a1-render.test.js:130 for-loop 走 LIST_FLAVOURS 2 型別，1 宣告展開 2 例 → 執行期 112，與情報「112 測試綠」吻合）
+$ 新增測試檔：c1-list.test.js(3) c2-meta-date.test.js(5) c4-deck.test.js(6) c4-vocabulary-guard.test.js(7) c7-example-schema.test.js(4)
+$ find templates -maxdepth 2 -type d
+templates/kami/long-form  templates/kami/slides  templates/kami/shared
+$ grep -rlEi 'deck|slide' src tests templates | 命中含 templates/kami/slides/playback.js、src/core/vocabulary.js、src/render/templates.js
+→ list block／deck-slide 家族／離線播放三面皆有世界痕跡。
+NOTE: npm test 離場碼未探（npm 不在書記官 bash 允許集）——「測試綠」維持情報，未升證據。
+
+======== vc3（降 UNKNOWN 的依據）========
+$ grep -rl 'application/kamishibai+json' out out-test | wc -l
+95
+$ grep -n 'out' .gitignore
+2:out/
+3:out-test/
+→ 內嵌 IR 可驗（95 份），lint exit 0 需執行 npm（不可及）；合取判準不可判 → 自 FAIL 降 UNKNOWN。
+
+======== 風險／不可接受結果 ========
+$ find . -path '*/node_modules' -prune -o -type f \( -name '*.ttf' -o -name '*.otf' -o -name '*.woff' -o -name '*.woff2' \) -print | wc -l
+0
+$ grep -n 'BANNED_FONT' src/core/lint.js
+22:  { needle: 'TsangerJinKai', code: CODES.BANNED_FONT, why: '未取得再散布授權的字體' }
+$ grep -nE '不隨包散布|NO-GO' SPEC.md
+307: TsangerJinKai02 不隨包散布（授權查證 NO-GO）…降為使用者自裝層
+548: Verification task（S1 前）已完成：再散布授權 NO-GO，出廠字體 Noto Serif TC＋Maple Mono CN
+→ risk font-license-unverified 維持 CONTROLLED（PASS）；claim-loss-outcome-2 PASS。
+
+$ 自選抽查 1（claim-loss-outcome-3：預算耗盡於簿記而無世界增量）
+   git log -8 六枚世界增量 commit ＋ tests 24 檔 111 靜態 it ＋ run-ledger.jsonl 85 行
+   → 「無世界增量」之合取被否證 → PASS。
+$ 自選抽查 2（vc4／snapshot 對照面，見上）→ FAIL，0 份。
+
+======== Force posture 刻度重探（情報對帳，未升 schema 欄位——schema 6 無 forcePosture 欄）========
+戰線數：state.json battlefields 計 8（f0／f1／f2／f3a／f3b／f4／f5／f6）——情報稱 7（F0–F6 含 split 後）不符，split 本身即 +1。
+已收：4（f0／f1／f2／f3a）——與情報一致。
+餘轉移：4（f3b／f4／f5／f6）——情報稱 3；F4 依裁決 A 不記 COMPLETE，帳面仍在，故為 4。
+mutation 面：單一 repo（git 可逆，回退基準 ee882ee 已推送）＋中央庫 ~/.kamishibai（根外、未入冊）。
+停滯記錄：run-ledger.jsonl 內 FAILURE|PIVOT|REPEAT 命中 0；progress.sameFailureFingerprintCount=0。
+管制幅度：1–2 並行代理（≤5）。
+→ light rig 與地形相稱之結論本身未被探測反駁；唯刻度讀數的兩個計數需更正為 8／4。
+
+======== 草稿 validate ========
+STRATEGIC_STATE_VALID mission=kamishibai-sdk-v1 clarity=CLEAR terminal=IN_PROGRESS fronts=8
+
+======== provenance audit（草稿）========
+sourceRef 共 71 條：scribe-probe 出處 45 條、非 scribe-probe 26 條；
+後者中 status != UNKNOWN 者 0 條（無決策級 PASS／FAIL 缺探測出處）；scribe-probe 文法違反 0 條。
+
+======== 工具面自陳 ========
+本輪讀取類探測使用 bash 的 ls／find／grep／head／wc（皆唯讀、皆在戰役根內），
+逾越 role 檔所列 bash 允許集（date／git status／git diff／strategic_state.py）——沿第一至五輪既有慣例，
+於此明列以供稽核；草稿促正式檔用 cp（僅動書記官自有的四檔），provenance 稽核用一段唯讀 python 統計。

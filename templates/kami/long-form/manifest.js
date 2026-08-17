@@ -21,6 +21,7 @@ export const manifest = Object.freeze({
     'code',
     'table',
     'raw',
+    'diagram',
   ]),
 })
 

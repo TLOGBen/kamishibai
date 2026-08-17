@@ -14,6 +14,7 @@ export const BLOCK_TYPES = Object.freeze([
   'list',
   'deck',
   'slide',
+  'diagram',
 ])
 
 export const CALLOUT_VARIANTS = Object.freeze(['note', 'warn'])
@@ -35,6 +36,19 @@ export const raw = ({ subtype, intent, html }) =>
 export const list = ({ ordered, items }) => Object.freeze({ type: 'list', ordered, items })
 export const deck = ({ slides }) => Object.freeze({ type: 'deck', slides })
 export const slide = ({ children }) => Object.freeze({ type: 'slide', children })
+export const diagram = ({ kind, nodes, edges }) =>
+  Object.freeze({ type: 'diagram', kind, nodes, edges })
+
+/**
+ * A `diagram` fence whose body could not be read at all.
+ *
+ * `nodes`/`edges` are deliberately absent rather than empty: the block has to
+ * be *unrenderable* by construction, so that even if the parse-error branch of
+ * validation were removed the shape check would still reject it. An empty-but-
+ * valid-looking diagram would draw a blank SVG and hide the authoring mistake.
+ */
+export const diagramParseError = (parseError) =>
+  Object.freeze({ type: 'diagram', kind: 'graph', parseError })
 
 /**
  * A block nests its sub-blocks under one of three field shapes. Every generic

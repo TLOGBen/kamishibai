@@ -1,4 +1,5 @@
 import { BLOCK_TYPES, CALLOUT_VARIANTS, RAW_SUBTYPES, META_KEY_ORDER } from './blocks.js'
+import { DIAGRAM_KINDS } from './diagram.js'
 import { IR_VERSION } from './ir.js'
 
 export const SCHEMA_DIALECT = 'https://json-schema.org/draft/2020-12/schema'
@@ -9,6 +10,23 @@ const children = { type: 'array', items: { $ref: '#/$defs/block' } }
 const cells = { type: 'array', items: str }
 /** `list.items` is one block array *per list item* — an array of arrays. */
 const itemGroups = { type: 'array', items: children }
+
+/**
+ * A `diagram` carries a *spec*, not geometry: layout is recomputed on every
+ * render (and every replay) so the picture can never drift from the data.
+ */
+const diagramNode = {
+  type: 'object',
+  required: ['id', 'label'],
+  properties: { id: { ...str, minLength: 1 }, label: str },
+  additionalProperties: false,
+}
+const diagramEdge = {
+  type: 'object',
+  required: ['from', 'to'],
+  properties: { from: { ...str, minLength: 1 }, to: { ...str, minLength: 1 }, label: str },
+  additionalProperties: false,
+}
 
 const whenType = (type, then) => ({
   if: { required: ['type'], properties: { type: { const: type } } },
@@ -103,6 +121,14 @@ export function irSchema() {
           }),
           whenType('deck', { required: ['slides'], properties: { slides: children } }),
           whenType('slide', { required: ['children'], properties: { children } }),
+          whenType('diagram', {
+            required: ['kind', 'nodes', 'edges'],
+            properties: {
+              kind: { enum: [...DIAGRAM_KINDS] },
+              nodes: { type: 'array', minItems: 1, items: diagramNode },
+              edges: { type: 'array', items: diagramEdge },
+            },
+          }),
         ],
         unevaluatedProperties: false,
       },

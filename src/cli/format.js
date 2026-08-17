@@ -33,9 +33,21 @@ const formatListEntry = (e) =>
 const formatList = (entries) =>
   entries.length === 0 ? '（此專案尚無產物）' : entries.map(formatListEntry).join('\n')
 
+/** Every key of the pinned export/snapshot shapes has to reach human output too. */
+const formatExport = (r) => `✔ 已匯出 ${r.format} → ${r.artifact}`
+const formatSnapshot = (r) => `✔ 已截圖 → ${r.artifact}（${r.width}×${r.height}）`
+const formatSetup = (r) =>
+  [
+    `✔ 中央儲存庫 → ${r.home}`,
+    `  瀏覽器：${r.browser}（安裝指令：${r.command}）`,
+  ].join('\n')
+
 const RENDERERS = Object.freeze({
   render: formatDelivery('渲染'),
   replay: formatDelivery('重繪'),
+  export: formatExport,
+  snapshot: formatSnapshot,
+  setup: formatSetup,
   lint: (r) => `✔ lint 通過：${r.artifact}`,
   example: (r) => r.example,
   schema: (r) => JSON.stringify(r, null, 2),

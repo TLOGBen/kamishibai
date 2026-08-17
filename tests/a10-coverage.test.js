@@ -6,8 +6,8 @@ import { repoRoot } from './helpers.js'
 const TESTS_DIR = join(repoRoot, 'tests')
 
 /**
- * CONTRACT A10：A1–A9（S1）、B1–B8（S2）、C1–C8（S3a）每條在測試碼中有具名
- * 對應測試。條文擴充時這張表跟著長，缺一條就紅。
+ * CONTRACT A10：A1–A9（S1）、B1–B8（S2）、C1–C8（S3a）、D1–D7（S3b）每條在測試碼中
+ * 有具名對應測試。條文擴充時這張表跟著長，缺一條就紅。
  */
 const CRITERIA = Object.freeze({
   A1: [
@@ -145,6 +145,58 @@ const CRITERIA = Object.freeze({
     'test_a9_no_source_file_exceeds_800_lines',
     'test_c4_deck_formatter_shared_both_paths',
     'test_formatter_shared_both_paths',
+  ],
+  D1: [
+    'test_diagram_svg_deterministic',
+    'test_diagram_both_templates_draw_identically',
+    'test_diagram_in_both_manifests',
+    'test_diagram_arrow_ids_are_unique',
+  ],
+  D2: [
+    'test_diagram_fence_invalid',
+    'test_diagram_unknown_kind',
+    'test_diagram_dangling_edge',
+    'test_diagram_duplicate_node_id',
+    'test_diagram_empty_nodes',
+    'test_diagram_example_roundtrip',
+    'test_diagram_schema_pins_fields',
+  ],
+  D3: [
+    'test_export_json_shape',
+    'test_export_pdf_document',
+    'test_export_format_mismatch',
+    'test_export_rejects_unknown_format',
+    'test_export_uses_the_print_form',
+  ],
+  D4: [
+    'test_export_requires_browser',
+    'test_export_browser_gate_is_loud',
+    'test_setup_reports_store_and_browser',
+    'test_setup_creates_store_root',
+  ],
+  D5: [
+    'test_snapshot_json_shape',
+    'test_snapshot_deck_slide_selection',
+    'test_snapshot_slide_flag_rejected_on_document',
+  ],
+  D6: [
+    'test_d6_sidecar_write_is_atomic',
+    'test_d6_atomic_write_leaves_no_residue_on_failure',
+    'test_d6_store_sidecar_has_no_tmp_residue',
+    'test_d6_sidecar_written_only_through_atomic_writer',
+    'test_d6_export_never_writes_into_the_store',
+  ],
+  D7: [
+    'test_d7_new_commands_appear_in_help',
+    'test_d7_new_commands_classify_exit_codes',
+    'test_d7_setup_json_convention',
+    'test_d7_export_snapshot_json_convention',
+    'test_d7_export_layer_isolates_browser_deps',
+    'test_d7_export_layer_files_are_small',
+    'test_d7_diagram_survives_replay',
+    'test_d7_diagram_rejected_on_replay_when_spec_broken',
+    'test_a9_cli_layer_never_imports_vue',
+    'test_a9_no_source_file_exceeds_800_lines',
   ],
 })
 

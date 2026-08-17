@@ -10,6 +10,9 @@ import { schemaCommand } from './commands/schema.js'
 import { listCommand } from './commands/list.js'
 import { openCommand } from './commands/open.js'
 import { replayCommand } from './commands/replay.js'
+import { exportCommand } from './commands/export.js'
+import { snapshotCommand } from './commands/snapshot.js'
+import { setupCommand } from './commands/setup.js'
 
 const argv = process.argv
 const wantsJson = argv.includes('--json')
@@ -29,6 +32,9 @@ const COMMANDS = Object.freeze([
   'list',
   'open',
   'replay',
+  'export',
+  'snapshot',
+  'setup',
 ])
 
 /** The single wording for "you gave no command", shared by both output paths. */
@@ -122,6 +128,40 @@ const buildProgram = () => {
     .action((name, options) => {
       const { result, exitCode } = openCommand(name, options)
       emit({ command: 'open', result, json: wantsJson, exitCode })
+    })
+
+  program
+    .command('export')
+    .description('把產物匯出成附屬格式（document → pdf、deck → pptx）')
+    .argument('<artifact>', '既有產物 HTML 路徑')
+    .requiredOption('--to <format>', '匯出格式：pdf 或 pptx')
+    .option('-o, --out <path>', '匯出檔輸出路徑（預設 out/<產物名>.<格式>）')
+    .option('--json', '以 JSON 輸出結果')
+    .action(async (artifact, options) => {
+      const { result, exitCode } = await exportCommand(artifact, options)
+      emit({ command: 'export', result, json: wantsJson, exitCode })
+    })
+
+  program
+    .command('snapshot')
+    .description('把產物截成 PNG，讓 Agent（與人）看得到視覺效果')
+    .argument('<artifact>', '既有產物 HTML 路徑')
+    .option('-o, --out <path>', 'PNG 輸出路徑（預設 out/<產物名>.png）')
+    .option('--slide <n>', 'deck 產物要截第幾張（預設第 1 張）')
+    .option('--json', '以 JSON 輸出結果')
+    .action(async (artifact, options) => {
+      const { result, exitCode } = await snapshotCommand(artifact, options)
+      emit({ command: 'snapshot', result, json: wantsJson, exitCode })
+    })
+
+  program
+    .command('setup')
+    .description('初始化環境：建中央儲存庫、確認（必要時安裝）渲染用瀏覽器')
+    .option('--dry-run', '只回報狀態、不建目錄也不安裝')
+    .option('--json', '以 JSON 輸出結果')
+    .action(async (options) => {
+      const { result, exitCode } = await setupCommand(options)
+      emit({ command: 'setup', result, json: wantsJson, exitCode })
     })
 
   program

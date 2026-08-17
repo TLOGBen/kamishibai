@@ -26,8 +26,34 @@ const intentOf = (info, content) => {
   return DEFAULT_INTENT
 }
 
+/**
+ * ```` ```diagram ```` — the fence body is **JSON**, pinned (CONTRACT D2).
+ *
+ * JSON rather than YAML because the fence body and the IR block are then the
+ * same text: an author can paste `example diagram` straight into a fence, and
+ * the parser needs no second syntax whose failure modes differ from the IR's.
+ *
+ * A body that will not parse becomes an explicitly unrenderable diagram block
+ * rather than an exception here: by the time the render pipeline validates, the
+ * block has an id and therefore a block path to report (SPEC §10.3), which a
+ * throw from inside the token walk could not produce.
+ */
+const parseDiagram = (token) => {
+  let spec
+  try {
+    spec = JSON.parse(token.content)
+  } catch (cause) {
+    return B.diagramParseError(`fence 內容不是合法 JSON：${cause.message}`)
+  }
+  if (spec === null || typeof spec !== 'object' || Array.isArray(spec)) {
+    return B.diagramParseError('fence 內容必須是一個 JSON 物件（diagram block 的欄位）')
+  }
+  return B.diagram({ kind: spec.kind, nodes: spec.nodes, edges: spec.edges })
+}
+
 const parseFence = (token) => {
   const info = (token.info ?? '').trim()
+  if (/^diagram\b/.test(info)) return parseDiagram(token)
   if (/^raw(-html|-svg)?\b/.test(info)) {
     return B.raw({
       subtype: rawSubtype(info),

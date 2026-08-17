@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSy
 import { basename, join } from 'node:path'
 import { engineVersion } from '../core/version.js'
 import { CODES, EXIT, KsbError } from '../core/errors.js'
+import { writeFileAtomic } from './atomic.js'
 import { MARKER_FILENAME, markerPath, projectDir, resolveHome } from './home.js'
 
 /**
@@ -113,11 +114,15 @@ export function archiveArtifact({ project, slug, html, copies = [], env = proces
  * earlier delivery history — the index is a cumulative record, not a snapshot
  * of the last render. Overwriting is only permitted because the content written
  * is a superset of what was there.
+ *
+ * And because it *is* an overwrite, it goes through the atomic writer (D6): the
+ * one legal truncation in the store must still be all-or-nothing, or a crash
+ * mid-write turns a cumulative record into an empty one.
  */
 const mergeCopiesIndex = (dir, name, copies, artifactPath) => {
   const merged = [...new Set([...readCopies(dir, name), ...copies])]
   try {
-    writeFileSync(join(dir, `${name}${COPIES_SUFFIX}`), `${JSON.stringify(merged)}\n`, 'utf8')
+    writeFileAtomic(join(dir, `${name}${COPIES_SUFFIX}`), `${JSON.stringify(merged)}\n`)
   } catch (cause) {
     throw writeFailed(artifactPath, cause)
   }

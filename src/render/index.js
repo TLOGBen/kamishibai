@@ -1,6 +1,7 @@
 import { buildIr } from '../core/ir.js'
 import { findDeck } from '../core/blocks.js'
 import { assertTemplateVocabulary } from '../core/vocabulary.js'
+import { assertDiagrams } from '../core/diagram.js'
 import { resolveTemplate } from './templates.js'
 import { renderBody } from './ssr.js'
 import { collectCodepoints, embedFontSubset } from './fonts.js'
@@ -27,6 +28,10 @@ export async function renderArtifact({ doc, templateKey, createdAt, generator })
   // must fail loudly. Skipping unknown types is what a renderer does; doing it
   // as the *only* answer turns a wrong `-t` into a silently empty artifact (C4).
   assertTemplateVocabulary({ doc, manifest: template.manifest })
+  // A structured `diagram` spec that cannot be drawn is rejected here rather
+  // than turned into an empty SVG: a picture that silently disagrees with its
+  // spec is the one failure a reader cannot detect (CONTRACT D2).
+  assertDiagrams(doc)
   const ir = buildIr({ doc, template: template.manifest, createdAt, generator })
 
   const body = await renderBody(template, doc)

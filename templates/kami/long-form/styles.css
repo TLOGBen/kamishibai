@@ -286,6 +286,48 @@ body {
   margin: 0 0 22px;
 }
 
+/* diagram（CONTRACT D1）——幾何由 core/diagram.js 算出，樣式只上色。
+   這段在兩套模板中逐字相同，且只用兩邊取值一致的變數（--accent /
+   --accent-soft / --text-primary / --text-secondary），所以同一份 spec
+   在長文與簡報下畫出的是同一張圖，不是「看起來很像」的兩張。 */
+.diagram {
+  margin: 0 0 22px;
+  overflow-x: auto;
+}
+
+.diagram-svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  font-family: var(--serif);
+}
+
+.diagram-node-box {
+  fill: var(--accent-soft);
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+
+.diagram-node-label {
+  fill: var(--text-primary);
+  font-size: 15px;
+}
+
+.diagram-edge-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+
+.diagram-arrow {
+  fill: var(--accent);
+}
+
+.diagram-edge-label {
+  fill: var(--text-secondary);
+  font-size: 12px;
+}
+
 .colophon {
   margin-top: 64px;
   padding-top: 16px;

@@ -49,7 +49,28 @@ export const hello = (name) => \`你好，\${name}\`
 警示型 callout 長這樣。
 :::
 
-# 第二章　raw 島嶼
+# 第二章　結構化圖表
+
+下面這個 diagram fence 的內容是 **JSON**，欄位就是 IR 的 diagram block；版面由 SDK
+算出，不必手畫座標。v1 只有一種 kind：有向的節點邊圖。
+
+\`\`\`diagram
+{
+  "kind": "graph",
+  "nodes": [
+    { "id": "input", "label": "來源語料" },
+    { "id": "ir", "label": "block tree" },
+    { "id": "artifact", "label": "離線產物" }
+  ],
+  "edges": [
+    { "from": "input", "to": "ir", "label": "parse" },
+    { "from": "ir", "to": "artifact", "label": "render" },
+    { "from": "artifact", "to": "ir", "label": "replay" }
+  ]
+}
+\`\`\`
+
+# 第三章　raw 島嶼
 
 島嶼是逃生艙：模板敘述不出來的東西才手寫，並以 intent 記錄原因。
 
@@ -138,6 +159,21 @@ const BLOCK_EXAMPLES = Object.freeze({
     id: 'b16',
     type: 'slide',
     children: [{ id: 'b17', type: 'prose', html: '單張投影片的內容。' }],
+  },
+  diagram: {
+    id: 'b18',
+    type: 'diagram',
+    kind: 'graph',
+    nodes: [
+      { id: 'input', label: '來源語料' },
+      { id: 'ir', label: 'block tree' },
+      { id: 'artifact', label: '離線產物' },
+    ],
+    edges: [
+      { from: 'input', to: 'ir', label: 'parse' },
+      { from: 'ir', to: 'artifact', label: 'render' },
+      { from: 'artifact', to: 'ir', label: 'replay' },
+    ],
   },
 })
 
