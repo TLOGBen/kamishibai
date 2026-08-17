@@ -114,33 +114,58 @@ body {
   text-underline-offset: 3px;
 }
 
-/* 清單承載於 <div class="prose">（<p> 不能包 block-level）。
-   行高與段距與 .prose 一致，縮排剛好讓標記懸在欄寬外緣。 */
+/* 清單有兩種來路：list block 的 <ul|ol class="list">（S3a 起的正路），
+   以及 raw 島嶼等塞進 prose 的清單 HTML（<p> 不能包 block-level，故承載於
+   <div class="prose">）。兩者共用同一組規則——行高與段距與 .prose 一致，
+   縮排剛好讓標記懸在欄寬外緣；否則同一份語料會依來路長得不一樣。 */
 .prose ul,
-.prose ol {
+.prose ol,
+.list {
   margin: 0 0 18px;
   padding-left: 1.4em;
   line-height: 1.55;
 }
 
-.prose li {
+.prose li,
+.list li {
   margin: 0 0 6px;
   line-height: 1.55;
 }
 
-.prose li:last-child {
+.prose li:last-child,
+.list li:last-child {
   margin-bottom: 0;
 }
 
-.prose li::marker {
+.prose li::marker,
+.list li::marker {
   color: var(--text-muted);
 }
 
 .prose ul ul,
 .prose ul ol,
 .prose ol ul,
-.prose ol ol {
+.prose ol ol,
+.list .list {
   margin: 6px 0 0;
+}
+
+/* 項目內容是真的子 block（prose / callout / code …），各自帶著自己的段距。
+   在 li 裡那些段距會把每一項撐成一大塊，故於此收斂。 */
+.list li > .prose {
+  margin: 0;
+}
+
+.list li > .prose + * {
+  margin-top: 8px;
+}
+
+.list li > .callout,
+.list li > .quote,
+.list li > .code,
+.list li > .table-wrap,
+.list li > .island {
+  margin: 8px 0 0;
 }
 
 .prose code,

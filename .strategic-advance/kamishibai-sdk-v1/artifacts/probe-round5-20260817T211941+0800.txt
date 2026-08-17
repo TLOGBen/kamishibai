@@ -1,0 +1,118 @@
+# scribe probe round5 @ 2026-08-17T21:19:41+08:00  root=/home/vakarve/project/kamishibai
+
+$ git log --oneline -6
+3acfcda docs: S2 封緘蓋章——B2 終審條文補丁（sidecar 索引/記錄語意），S2 交付鏈收官
+19383ab feat: S4 文件類輕客戶（delegate 試水溫）——錯字修改表＋工作日誌語料與 7 具名測試、密集表樣式，87 測試綠
+a4cce3e fix: F8 sidecar 併集寫回——孤兒 sidecar 不再被截斷（B2 機械條款擴及庫內一切檔案），80 測試綠
+b5a784f feat: S2 交付鏈完成——中央產物庫(KAMISHIBAI_HOME+首觸閘+wx原子寫)、list/open/replay、專案名兩級驗證(F1)、79 測試綠（seal 蓋章待補給恢復後複驗）
+3867e21 feat: S1 封緘完成——三輪驗收 21 findings 全數修復（IR 轉義/lint 結構化掃描/清單 callout 入樹/prose 容器合法化/字體子集下界/CLI 全呼叫形 JSON），52 測試綠，CONTRACT 蓋章
+f2603e9 feat: S1 核心脊椎實作——IR schema/Markdown 超集/SSR render/Kami 長文模板/CLI 四指令，47 測試綠（seal 三輪、11 findings 修復、突變加固；封緘待補 2 項條文強度後蓋章）
+
+$ git rev-parse HEAD
+3acfcdabc64554122279c48c21570d9800ebc65f
+
+$ git status --short
+ M CONTRACT.md
+?? .claude/archived/CONTRACT.md-1786972817
+?? .strategic-advance/kamishibai-sdk-v1/artifacts/probe-round5-20260817T211941+0800.txt
+
+$ git status -sb | head -1
+## main...origin/main
+
+$ git log --oneline @{upstream}..HEAD  (unpushed; empty == pushed)
+
+$ git show HEAD:CONTRACT.md | head -2
+# CONTRACT — S2 book 遷移 I：中央產物庫＋open/list/replay＋交付鏈
+> STATUS: sealed（2026-08-17）— 五點全符合：B1–B8 過（B2 依終審條文補丁）、跨 UI 單一 formatter、Verbatim 7/7、F1/F2/F8 修復經回歸突變確認（兩輪 11 findings：4 修復、6 列冊隨行、1 條文補丁）
+
+$ ls -la /home/vakarve/project/kamishibai/CONTRACT.md
+.rw-r--r-- 3.9k vakarve 17 Aug 21:20 /home/vakarve/project/kamishibai/CONTRACT.md
+
+$ find /home/vakarve/project/kamishibai -iname 'CONTRACT*' -not -path '*/node_modules/*'
+/home/vakarve/project/kamishibai/CONTRACT.md
+/home/vakarve/project/kamishibai/.claude/archived/CONTRACT.md-1786972817
+/home/vakarve/project/kamishibai/.claude/archived/CONTRACT.md-1786881210
+
+$ head -2 .claude/archived/CONTRACT.md-1786881210
+# CONTRACT — S1 核心脊椎：IR＋render＋Kami 長文模板＋CLI 基本盤
+> STATUS: sealed（2026-08-16）— 五點全符合：A1–A10 逐條過、7 表面全釘死、跨 UI 單一 formatter、九組常數 byte-exact、突變 2/2 被攔（歷三輪 21 findings 修復後 clean）
+
+$ head -2 .claude/archived/CONTRACT.md-1786972817
+# CONTRACT — S2 book 遷移 I：中央產物庫＋open/list/replay＋交付鏈
+> STATUS: sealed（2026-08-17）— 五點全符合：B1–B8 過（B2 依終審條文補丁）、跨 UI 單一 formatter、Verbatim 7/7、F1/F2/F8 修復經回歸突變確認（兩輪 11 findings：4 修復、6 列冊隨行、1 條文補丁）
+
+$ diff <(git show HEAD:CONTRACT.md) .claude/archived/CONTRACT.md-1786972817  (empty == identical)
+diff exit=0
+
+$ grep -c 'STATUS: sealed' on archived contracts (sealed slice count)
+.claude/archived/CONTRACT.md-1786881210:1
+.claude/archived/CONTRACT.md-1786972817:1
+
+$ ls fixtures/
+.rw-r--r-- 1.5k vakarve 16 Aug 17:13 book-sample.md
+drwxr-xr-x    - vakarve 16 Aug 15:20 broken
+drwxr-xr-x    - vakarve 16 Aug 14:29 clean
+.rw-r--r-- 1.6k vakarve 17 Aug 21:07 journal-sample.md
+.rw-r--r-- 1.5k vakarve 17 Aug 21:07 proofread-sample.md
+
+$ per-file it( count in tests/ (static declarations)
+a1-render.test.js              6
+a10-coverage.test.js           1
+a2-ir.test.js                  2
+a3-offline.test.js             3
+a4-fonts.test.js               6
+a5-lint.test.js                12
+a6-selfproof.test.js           6
+a7-cli-contract.test.js        9
+a8-idempotent.test.js          3
+a9-layers.test.js              3
+b1-home.test.js                5
+b2-store.test.js               5
+b3-archive.test.js             2
+b4-list.test.js                5
+b5-open.test.js                3
+b6-replay.test.js              4
+b7-chain.test.js               1
+b8-conventions.test.js         3
+s4-doc-types.test.js           7
+static it( total = 86 ; a1-render.test.js:130 for-loop over LIST_FLAVOURS(2) expands 1 decl -> 2 cases ; runtime cases = 87
+
+$ grep -n '^ *it(' tests/s4-doc-types.test.js
+49:    it('test_s4_proofread_renders_and_lints_clean: render/lint 皆 exit 0', () => {
+59:    it('test_s4_proofread_findings_table_head_verbatim: IR 含 table block 且六欄表頭逐字正確', () => {
+71:    it('test_s4_proofread_has_frontmatter_and_lead_prose: frontmatter 進 meta、表前有說明散文', () => {
+85:    it('test_s4_journal_renders_and_lints_clean: render/lint 皆 exit 0', () => {
+95:    it('test_s4_journal_two_sections_with_callout_in_log: IR 含兩個 section，執行日誌內含 callout', () => {
+123:    it('test_s4_journal_log_entries_newest_first: 執行日誌至少三條時間條目且新在上', () => {
+138:  it('test_s4_doc_types_reuse_existing_block_vocabulary: 兩份文件的 block 型別皆屬既有詞彙', async () => {
+
+$ find src -type f -name '*.js' | wc -l
+35
+
+$ grep -rlEi 'deck|slide|diagram|pptx|snapshot' src tests  (F3 scope surfaces)
+src/delivery/store.js
+tests/a3-offline.test.js
+
+NOTE: npm test exit code NOT probed - npm not in scribe bash allowed set. Test-green dimension left to operator evidence.
+
+======== 草稿 validate（f3 ACTIVE 版）========
+[FAIL] battlefields[3] 為 ACTIVE mutation 戰場時 recovery 必須 READY
+[FAIL] decision.candidates[2].eligible 必須由戰場、風險與 recovery 算為 false
+[FAIL] strategicClarity.unclearCauses 必須由決策條件算為 ['NO_ELIGIBLE_CANDIDATE']
+======== 草稿 validate（f3 DEFERRED 版）========
+[FAIL] IN_PROGRESS 必須恰有一個 ACTIVE MAIN battlefield，實際 0
+[FAIL] strategicClarity.route 必須為 TERMINAL
+→ 兩條路皆不合法：f3 進場條文成立故不得 PENDING/DEFERRED，recovery 未 READY 故不得 ACTIVE；
+  唯一合法組態需要 GIT_TRACKED_TREE_CLEAN_AT_F3_ENTRY == PASS，而探測為否。書記官不得偽造 PASS，故本輪不覆寫 state.json。
+
+======== 追蹤樹何以不 clean（關鍵佐證）========
+$ git -C /home/vakarve/project/kamishibai ls-files .claude | head -2
+.claude/archived/CONTRACT.md-1786881210
+.claude/research/tsanger-jinkai02-license.md
+$ git log --oneline --diff-filter=D -- CONTRACT.md（空＝史上從未提交過 CONTRACT.md 的刪除）
+→ S1 封緘時 .claude/archived/CONTRACT.md-1786881210 是以「新增追蹤檔」入 commit 3867e21，CONTRACT.md 本體留著續寫 S2；
+  本輪 S2 封緘則是把 CONTRACT.md mv 到 .claude/archived/CONTRACT.md-1786972817 且尚未提交——
+  故 D CONTRACT.md（未提交刪除）＋ ?? 新歸檔本（未追蹤）：S2 封緘儀式的歸檔步驟未落 commit。
+
+======== provenance audit（草稿）========
+scribe-probe sourceRef: 43 條；非 scribe-probe: 25 條，其中 status != UNKNOWN 者 0 條；grammar 違反 0 條

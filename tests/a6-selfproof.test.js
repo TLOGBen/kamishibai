@@ -29,8 +29,23 @@ describe('A6 防試錯自證', () => {
     expect(example.stdout, 'example doc 應示範有序清單').toMatch(/^\d+\.\s+\S/m)
 
     const body = html.slice(html.indexOf('<body>'), html.indexOf('<script type='))
-    expect(body).toMatch(/<div class="prose">\s*<ul>/)
-    expect(body).toMatch(/<div class="prose">\s*<ol>/)
+    // C1 起清單是 list block，外框自己活著，不再被塞進 prose 的 HTML 裡
+    expect(body).toMatch(/<ul class="list">/)
+    expect(body).toMatch(/<ol class="list">/)
+    expect(body, '教材的清單不得再走 prose html 路徑').not.toMatch(/<div class="prose">\s*<[uo]l>/)
+    // 教材必須示範「清單內的 callout」——那正是 C1 修掉的歷史取捨
+    expect(example.stdout, 'example doc 應示範清單內的 callout').toMatch(/^\s+:::(?:note|warn)\s*$/m)
+    const ir = JSON.parse(extractIrScripts(html)[0])
+    const listsWithCallout = []
+    const walk = (node) => {
+      for (const item of node.items ?? []) {
+        if (item.some((b) => b.type === 'callout')) listsWithCallout.push(node)
+        item.forEach(walk)
+      }
+      for (const child of node.children ?? []) walk(child)
+    }
+    walk(ir.doc)
+    expect(listsWithCallout.length, '教材的清單內 callout 未進 block tree').toBeGreaterThan(0)
     // 教材本身也不得產出無效 HTML
     for (const [, inner] of body.matchAll(/<p class="prose">([\s\S]*?)<\/p>/g)) {
       expect(/<(ul|ol|div|pre|table|blockquote)\b/i.test(inner)).toBe(false)

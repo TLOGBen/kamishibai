@@ -136,8 +136,8 @@ const buildProgram = () => {
 
   program
     .command('example')
-    .description('輸出合法範例（`doc` 為 Markdown 超集，其餘為 block JSON）')
-    .argument('[kind]', '範例類型：doc 或 block 名稱', 'doc')
+    .description('輸出合法範例（`doc`／`deck` 為 Markdown 超集，其餘為 block JSON）')
+    .argument('[kind]', '範例類型：doc、deck 或 block 名稱', 'doc')
     .option('--json', '以 JSON 輸出結果')
     .action((kind) => {
       const { result, exitCode } = exampleCommand(kind)

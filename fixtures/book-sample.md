@@ -37,14 +37,14 @@ export function hello(name) {
 ## 第二節　清單
 
 - 純清單項目一
-- 純清單項目二（不含 callout，走 prose 的清單 HTML 路徑）
+- 純清單項目二（清單是 `list` block，項目內容是子 block）
 
 有序清單同樣是 block-level，容器選擇不能只認 `ul`：
 
 1. 有序項目一
 2. 有序項目二
 
-清單內也可以放 callout——它必須進 block tree，而不是被壓成 prose 裡的原始 HTML：
+清單內也可以放 callout——外框保留，callout 是項目的子 block，而非被壓成 prose 裡的原始 HTML：
 
 - 項目：前置說明
   :::warn

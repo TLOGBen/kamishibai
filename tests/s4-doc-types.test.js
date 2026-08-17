@@ -33,10 +33,14 @@ const irOf = (name) => {
   return JSON.parse(payloads[0])
 }
 
-/** 深度優先蒐集所有指定型別的 block。 */
+/** 深度優先蒐集所有指定型別的 block，涵蓋 children／slides／items 三種巢狀形。 */
 const collect = (node, type, acc = []) => {
   if (node?.type === type) acc.push(node)
   if (Array.isArray(node?.children)) for (const c of node.children) collect(c, type, acc)
+  if (Array.isArray(node?.slides)) for (const s of node.slides) collect(s, type, acc)
+  if (Array.isArray(node?.items)) {
+    for (const item of node.items) for (const c of item) collect(c, type, acc)
+  }
   return acc
 }
 
@@ -124,10 +128,17 @@ describe('S4 文件類輕客戶：既有管線承載兩種文件形態', () => {
       const ir = irOf('journal')
       const log = collect(ir.doc, 'section').find((s) => s.title === '執行日誌')
 
+      // C1 起條目是 list block 的 items，時間戳落在每個項目的第一個 prose 上
+      // （S1 時它是 prose html 裡的 <li>）。改讀 items 而非標記字串，順序這條
+      // 斷言就不再綁在任何一種 HTML 形上。
       const stamps = []
-      for (const { html } of collect(log, 'prose')) {
-        for (const m of html.matchAll(/<li>\s*<strong>(\d{2}:\d{2})<\/strong>/g)) stamps.push(m[1])
+      for (const list of collect(log, 'list')) {
+        for (const item of list.items) {
+          const m = /^<strong>(\d{2}:\d{2})<\/strong>/.exec(item[0]?.html ?? '')
+          if (m) stamps.push(m[1])
+        }
       }
+      expect(collect(log, 'list').length, '執行日誌的條目必須是 list block').toBeGreaterThan(0)
       expect(stamps.length, '時間條目至少三條').toBeGreaterThanOrEqual(3)
 
       const descending = [...stamps].sort().reverse()
@@ -142,6 +153,8 @@ describe('S4 文件類輕客戶：既有管線承載兩種文件形態', () => {
       const walk = (node) => {
         if (node.type !== 'doc') seen.add(node.type)
         if (Array.isArray(node.children)) node.children.forEach(walk)
+        if (Array.isArray(node.slides)) node.slides.forEach(walk)
+        if (Array.isArray(node.items)) node.items.forEach((item) => item.forEach(walk))
       }
       walk(irOf(name).doc)
     }

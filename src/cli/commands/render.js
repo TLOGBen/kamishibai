@@ -14,14 +14,18 @@ import { deliver } from '../deliver.js'
  */
 export async function renderCommand(inputSpec, options = {}, env = process.env) {
   const { source, format, slug } = readSource(inputSpec)
-  const parsed = format === 'json' ? parseBlockTree(source) : parseMarkdown(source)
+  // The template decides whether `---` is a page break, so the `-t` override has
+  // to reach the parser — resolving it only at render time would compile a deck
+  // source as a document and then draw the empty result with the deck template.
+  const parsed =
+    format === 'json' ? parseBlockTree(source) : parseMarkdown(source, { template: options.template })
 
-  const { html } = await renderArtifact({
+  const { html, slides } = await renderArtifact({
     doc: parsed.doc,
     templateKey: options.template ?? parsed.templateKey,
     createdAt: resolveCreatedAt(env),
     generator: options.generator,
   })
 
-  return deliver({ html, slug, options, env })
+  return deliver({ html, slides, slug, options, env })
 }

@@ -10,9 +10,18 @@ const formatErrors = (errors) =>
     ...errors.map((e) => `  - [${e.code}] ${e.path}: ${e.message}`),
   ].join('\n')
 
-/** `render` / `replay` share one result shape, so they share one rendering. */
+/**
+ * `render` / `replay` share one result shape, so they share one rendering.
+ * Every extension key has to surface here too — a key that lives only in
+ * `--json` is exactly the two-path drift this formatter exists to prevent.
+ */
 const formatDelivery = (verb) => (r) =>
-  [`✔ 已${verb} → ${r.artifact}（${r.bytes} bytes）`, `  正本 → ${r.archived}`].join('\n')
+  [
+    `✔ 已${verb} → ${r.artifact}（${r.bytes} bytes${
+      Number.isInteger(r.slides) ? `，${r.slides} 張` : ''
+    }）`,
+    `  正本 → ${r.archived}`,
+  ].join('\n')
 
 const formatListEntry = (e) =>
   [

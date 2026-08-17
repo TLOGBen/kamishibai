@@ -29,10 +29,13 @@ export const hello = (name) => \`你好，\${name}\`
 | prose | 散文段落 |
 | table | 表格資料 |
 
-清單也是合法構件——含 block-level 內容的 prose 會以 \`<div class="prose">\` 承載：
+清單是真正的 \`list\` block——項目內容是子 block，所以清單裡放 callout 不會拆掉外框：
 
 - 項目一
 - 項目二
+  :::note
+  項目內的 callout 仍走同一個 Callout 元件。
+  :::
 - 項目三
 
 1. 有序項目一
@@ -52,6 +55,42 @@ export const hello = (name) => \`你好，\${name}\`
 
 \`\`\`raw-html intent="示範 raw 島嶼的宣告方式"
 <div class="example-island">手寫 HTML 島嶼</div>
+\`\`\`
+`
+
+/**
+ * The canonical deck source. `---` is a page break *only* under the slides
+ * template, so the frontmatter is load-bearing — copying the body under
+ * `kami/long-form` gives a document with the breaks silently dropped.
+ */
+export const EXAMPLE_DECK = `---
+title: 範例簡報
+kicker: KAMISHIBAI EXAMPLE
+author: kamishibai
+template: kami/slides
+---
+
+# 第一張　開場
+
+首張自動帶出 frontmatter 的 title 與 kicker。
+
+---
+
+# 第二張　構件
+
+- 清單、callout、程式碼、表格都與長文模板同源
+- \`---\` 前後各留一個空行，否則 Markdown 會把它讀成 setext 標題
+
+:::note
+產物內建播放：方向鍵／空白鍵翻頁，f 全螢幕，Esc 離開。
+:::
+
+---
+
+# 第三張　收束
+
+\`\`\`js
+export const slides = (deck) => deck.slides.length
 \`\`\`
 `
 
@@ -78,16 +117,45 @@ const BLOCK_EXAMPLES = Object.freeze({
     intent: '為何需要手寫這塊',
     html: '<div class="island">手寫內容</div>',
   },
+  list: {
+    id: 'b11',
+    type: 'list',
+    ordered: false,
+    items: [
+      [{ id: 'b12', type: 'prose', html: '項目一：每個項目是一組 block。' }],
+      [
+        { id: 'b13', type: 'prose', html: '項目二：所以項目內可以放別的 block。' },
+        {
+          id: 'b14',
+          type: 'callout',
+          variant: 'note',
+          children: [{ id: 'b15', type: 'prose', html: '像這個 callout。' }],
+        },
+      ],
+    ],
+  },
+  slide: {
+    id: 'b16',
+    type: 'slide',
+    children: [{ id: 'b17', type: 'prose', html: '單張投影片的內容。' }],
+  },
 })
+
+/**
+ * Kinds whose example is a whole Markdown-superset source rather than one
+ * block: they are the ones that can be piped straight back into `render -`.
+ */
+const DOC_EXAMPLES = Object.freeze({ doc: EXAMPLE_DOC, deck: EXAMPLE_DECK })
 
 export const EXAMPLE_KINDS = Object.freeze(['doc', ...BLOCK_TYPES])
 
 /**
- * @param {string} kind `doc` for the Markdown superset, or a block type name
+ * @param {string} kind `doc`/`deck` for the Markdown superset, or a block type name
  * @returns {{kind: string, example: string}|null} null when the kind is unknown
  */
 export function exampleFor(kind) {
-  if (kind === 'doc') return { kind, example: EXAMPLE_DOC }
+  const source = DOC_EXAMPLES[kind]
+  if (source !== undefined) return { kind, example: source }
   const block = BLOCK_EXAMPLES[kind]
   if (block === undefined) return null
   return { kind, example: JSON.stringify(block, null, 2) }

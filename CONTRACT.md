@@ -1,4 +1,5 @@
 # CONTRACT — S3a：list block＋deck/slide 家族＋播放模式最小版
+> STATUS: sealed（2026-08-17）— 五點全符合：C1–C8 過、Verbatim 9/9 byte-equal、詞彙＋根形雙層守衛雙向釘死、突變 2/2 攔截（兩輪 6 findings：5 修復、1 列冊）
 
 ## 目標
 IR 詞彙補上 `list` 型別（修復「清單內 callout 拆外框」的既知取捨），並讓同一份
@@ -15,7 +16,7 @@ G2 陷阱升條文：清單巢狀與 callout-in-list 的歷史取捨（tokens.js
 - [ ] C1 **list block**：`{type:"list", ordered:bool, items:[block[]…]}` 入 IR schema 與 parser——bullet/ordered/巢狀清單成為真 block；**清單內 callout 不再拆外框**（`<ul|ol>` 結構保留、callout 為 item 內子 block，走 Callout 元件含標籤）；純清單不再經 prose html 路徑。既有「來源 ⇔ IR callout 計數對稱」測試照綠。
 - [ ] C2 **date 修復**：buildMeta 對 Date 物件轉 `YYYY-MM-DD` 字串；裸 `date: 2026-08-17` 與引號版產出相同 meta（釘死測試含兩形）。
 - [ ] C3 模板層：長文模板以 `.prose`-一致樣式渲染 list block（沿用既有清單 CSS）；`test_render_body_blocks` 對稱斷言涵蓋 list。
-- [ ] C4 **deck 模式**：frontmatter `template: kami/slides` 時，文件以 `---`（thematic break）為切頁符編為 `{type:"deck", slides:[…]}`；渲染產物每張為 `<section class="slide">`、16:9 版面基準；首張含 title/kicker（frontmatter）；`--json` 輸出增列 `slides:<int>` 頂層鍵（僅 deck 產物）。
+- [ ] C4 **deck 模式**：frontmatter `template: kami/slides` 時，文件以 `---`（thematic break）為切頁符編為 `{type:"deck", slides:[…]}`；渲染產物每張為 `<section class="slide">`、16:9 版面基準；首張含 title/kicker（frontmatter）；`--json` 輸出增列 `slides:<int>` 頂層鍵（僅 deck 產物）；**manifest.blocks 為守衛非宣告：doc 含模板詞彙表外之 block 型別 → render/replay exit 1 帶 KSB_ 驗證錯，禁止靜默濾除；跨家族 `replay -t` 需釘死測試**（seal 補釘 F1）；**觸發面擴至根形（蓋章驗補釘 F6）：模板 manifest 宣告必需根形（slides 之 root＝deck），doc 根形不符 → 同碼 exit 1——「模板無法表達該文件之形」一律報錯，兩方向（deck→長文、doc→slides）皆有釘死測試**。
 - [ ] C5 **播放最小版**：deck 產物內建離線 JS——方向鍵/空白鍵翻頁、Esc 離開全螢幕、`f` 進全螢幕、進度指示（`n/N`）；零外部請求照舊（A3 禁形掃描沿用）；lint 對 deck 產物 exit 0（島嶼掃描不誤殺內建播放 script——它是模板層資產非 raw 島嶼）。
 - [ ] C6 IR/replay 一致：deck 產物內嵌 IR 含 deck block tree；`replay` 重繪 byte-identical（KAMISHIBAI_BUILD_TIME 釘死）。
 - [ ] C7 回歸：既有 87 測試照綠；`kamishibai example deck` 輸出合法 deck 語料並 round-trip（example 家族擴充）；schema 輸出含 list/deck/slide 定義且 IR 過驗。
@@ -37,6 +38,8 @@ deck 切頁符:      ---（thematic break，僅 template: kami/slides 時生效�
 slide 容器:       <section class="slide">
 deck --json 增鍵: slides
 slides 模板 id:   kami/slides@0.1.0（namespace kami）
-播放鍵:           ArrowRight/ArrowLeft/Space=翻頁, f=全螢幕, Esc=離開
-date 正規形:      YYYY-MM-DD
+播放鍵:           ArrowRight/ArrowLeft/Space=翻頁, f=全螢幕（大小寫皆收）, Esc=離開
+進度指示形:       {n} / {N}（帶空格，seal 補釘 F3）
+播放提示文字:     方向鍵／空白鍵翻頁 · F 全螢幕 · Esc 離開（逐字釘死，seal 補釘 F4）
+date 正規形:      YYYY-MM-DD（datetime 形以本地日曆欄位取日，禁 UTC 切片跨日，seal 補釘 F5）
 ```

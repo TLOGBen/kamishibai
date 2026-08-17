@@ -11,6 +11,9 @@ export const BLOCK_TYPES = Object.freeze([
   'code',
   'table',
   'raw',
+  'list',
+  'deck',
+  'slide',
 ])
 
 export const CALLOUT_VARIANTS = Object.freeze(['note', 'warn'])
@@ -29,6 +32,21 @@ export const code = ({ lang, text }) => Object.freeze({ type: 'code', lang, text
 export const table = ({ head, rows }) => Object.freeze({ type: 'table', head, rows })
 export const raw = ({ subtype, intent, html }) =>
   Object.freeze({ type: 'raw', subtype, intent, html })
+export const list = ({ ordered, items }) => Object.freeze({ type: 'list', ordered, items })
+export const deck = ({ slides }) => Object.freeze({ type: 'deck', slides })
+export const slide = ({ children }) => Object.freeze({ type: 'slide', children })
+
+/**
+ * A block nests its sub-blocks under one of three field shapes. Every generic
+ * walk (id assignment, traversal) is written against this table rather than
+ * against `children` alone — a new container type that forgot to be added here
+ * would otherwise silently lose ids for everything inside it.
+ *
+ *  - `children` / `slides` — a flat array of blocks
+ *  - `items`               — an array *of arrays* of blocks (one per list item)
+ */
+const BLOCK_ARRAY_KEYS = Object.freeze(['children', 'slides'])
+const BLOCK_MATRIX_KEYS = Object.freeze(['items'])
 
 /**
  * Assign deterministic document-order ids (b1, b2, …) to a block tree.
@@ -37,16 +55,48 @@ export const raw = ({ subtype, intent, html }) =>
 export function withIds(node, counter = { n: 0 }) {
   counter.n += 1
   const id = `b${counter.n}`
-  const { id: _previousId, children, ...rest } = node
-  if (!Array.isArray(children)) return { id, ...rest }
-  return { id, ...rest, children: children.map((child) => withIds(child, counter)) }
+  const { id: _previousId, children, slides, items, ...rest } = node
+  const nested = { children, slides, items }
+  const out = { id, ...rest }
+  for (const key of BLOCK_MATRIX_KEYS) {
+    const value = nested[key]
+    if (!Array.isArray(value)) continue
+    out[key] = value.map((group) =>
+      Array.isArray(group) ? group.map((block) => withIds(block, counter)) : group,
+    )
+  }
+  for (const key of BLOCK_ARRAY_KEYS) {
+    const value = nested[key]
+    if (!Array.isArray(value)) continue
+    out[key] = value.map((block) => withIds(block, counter))
+  }
+  return out
 }
 
-/** Depth-first walk in document order. */
+/** Depth-first walk in document order, across every nesting shape. */
 export function* walkBlocks(node, path = 'doc') {
   yield { block: node, path }
-  if (!Array.isArray(node.children)) return
-  for (const [index, child] of node.children.entries()) {
-    yield* walkBlocks(child, `${path}.children[${index}]`)
+  for (const key of BLOCK_MATRIX_KEYS) {
+    if (!Array.isArray(node[key])) continue
+    for (const [group, blocks] of node[key].entries()) {
+      if (!Array.isArray(blocks)) continue
+      for (const [index, child] of blocks.entries()) {
+        yield* walkBlocks(child, `${path}.${key}[${group}][${index}]`)
+      }
+    }
   }
+  for (const key of BLOCK_ARRAY_KEYS) {
+    if (!Array.isArray(node[key])) continue
+    for (const [index, child] of node[key].entries()) {
+      yield* walkBlocks(child, `${path}.${key}[${index}]`)
+    }
+  }
+}
+
+/** The first `deck` block in a tree, or undefined for a document artifact. */
+export function findDeck(node) {
+  for (const { block } of walkBlocks(node)) {
+    if (block?.type === 'deck') return block
+  }
+  return undefined
 }

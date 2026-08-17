@@ -1,8 +1,12 @@
 import longForm from '../../templates/kami/long-form/index.js'
+import slides from '../../templates/kami/slides/index.js'
 import { CODES, validationError } from '../core/errors.js'
 
 /** Factory template registry (SPEC §6.1 出廠內建模板家族). */
-const REGISTRY = new Map([[longForm.key, longForm]])
+const REGISTRY = new Map([
+  [longForm.key, longForm],
+  [slides.key, slides],
+])
 
 export function listTemplateKeys() {
   return [...REGISTRY.keys()].sort()

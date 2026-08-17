@@ -62,11 +62,37 @@ const parseTable = (tokens, openIndex, inline) => {
 }
 
 /**
+ * Compile one `<ul>`/`<ol>` token run into a real `list` block.
+ *
+ * S1 flattened lists into a prose HTML string, which meant a callout inside a
+ * list item had to be rendered by markdown-it — a second rendering path that
+ * disagreed with the Callout component — unless the list frame was thrown away
+ * entirely. Both halves of that trade-off are gone once list items carry real
+ * blocks: the `<ul>` frame survives *and* every child stays in the block tree.
+ */
+const parseList = (tokens, openIndex, closeIndex, ctx, ordered) => {
+  const items = []
+  let i = openIndex + 1
+  while (i < closeIndex) {
+    if (tokens[i].type !== 'list_item_open') {
+      i += 1
+      continue
+    }
+    const itemClose = findClose(tokens, i)
+    items.push(walkTokens(tokens.slice(i + 1, itemClose), ctx))
+    i = itemClose + 1
+  }
+  return B.list({ ordered, items })
+}
+
+/**
  * Walk a markdown-it token stream into flat block items. Headings become
- * `{kind:'heading'}` markers; `nestSections` turns them into section blocks.
+ * `{kind:'heading'}` markers and thematic breaks `{kind:'hr'}` markers;
+ * `nestSections` turns the former into section blocks and drops the latter,
+ * while deck compilation (parser/index.js) cuts slides on the latter.
  */
 export function walkTokens(tokens, ctx) {
-  const { inline, renderSlice } = ctx
+  const { inline } = ctx
   const out = []
   let i = 0
 
@@ -119,18 +145,13 @@ export function walkTokens(tokens, ctx) {
       case 'bullet_list_open':
       case 'ordered_list_open': {
         const close = findClose(tokens, i)
-        const slice = tokens.slice(i, close + 1)
-        // S1 沒有 list block 型別，所以清單平常整塊編譯成 prose 的 HTML。
-        // 但清單裡若有 callout，那條路會把它壓成 prose 內的原始 HTML——
-        // IR 就此有損，且 callout 會改由 markdown-it 的 renderer 產出，
-        // 形成第二條與 Callout 元件不同源的渲染路徑。寧可拆掉清單外框，
-        // 也要讓 callout 以真正的 block 進 block tree。
-        if (slice.some((token) => token.type === 'kami_container_open')) {
-          out.push(...walkTokens(tokens.slice(i + 1, close), ctx))
-        } else {
-          out.push(B.prose(renderSlice(slice)))
-        }
+        out.push(parseList(tokens, i, close, ctx, t.type === 'ordered_list_open'))
         i = close + 1
+        break
+      }
+      case 'hr': {
+        out.push({ kind: 'hr' })
+        i += 1
         break
       }
       case 'html_block': {
@@ -151,12 +172,26 @@ export function walkTokens(tokens, ctx) {
   return out
 }
 
-/** Turn flat heading markers into a nested section tree (recursively). */
+/** Recurse into whichever nesting shape a container block uses. */
+const nestChildren = (item) => {
+  if (Array.isArray(item.items)) return { ...item, items: item.items.map(nestSections) }
+  if (Array.isArray(item.children)) return { ...item, children: nestSections(item.children) }
+  return item
+}
+
+/**
+ * Turn flat heading markers into a nested section tree (recursively).
+ *
+ * `hr` markers are dropped here: in document mode a thematic break carries no
+ * block meaning (a pre-existing, inventoried behaviour). Deck mode consumes
+ * them *before* calling this, which is the one place they mean anything.
+ */
 export function nestSections(items) {
   const root = { children: [] }
   const stack = [{ level: 0, node: root }]
 
   for (const item of items) {
+    if (item.kind === 'hr') continue
     if (item.kind === 'heading') {
       while (stack.length > 1 && stack[stack.length - 1].level >= item.level) stack.pop()
       const node = { type: 'section', title: item.title, level: item.level, children: [] }
@@ -164,10 +199,7 @@ export function nestSections(items) {
       stack.push({ level: item.level, node })
       continue
     }
-    const nested = Array.isArray(item.children)
-      ? { ...item, children: nestSections(item.children) }
-      : item
-    stack[stack.length - 1].node.children.push(nested)
+    stack[stack.length - 1].node.children.push(nestChildren(item))
   }
   return root.children
 }

@@ -1,0 +1,334 @@
+:root {
+  --paper: #14161c;
+  --surface: #f7f6f1;
+  --accent: #1B365D;
+  --accent-soft: #dbe2ec;
+  --rule: #ddd9cc;
+  --text-primary: #23201a;
+  --text-secondary: #5c574c;
+  --text-muted: #8a8371;
+  --code-bg: #efece1;
+  --warn: #8a5a12;
+  /* 16:9 是版面基準：每張投影片先鎖比例，內容再依欄寬排。 */
+  --slide-ratio: 16 / 9;
+  --slide-measure: 1120px;
+  /* 宣告即內嵌（CONTRACT A4）：只列真的隨產物出貨的具名字族。 */
+  --serif: 'Noto Serif TC', serif;
+  --mono: monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--paper);
+  color: var(--text-primary);
+  font-family: var(--serif);
+  font-size: 19px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.deck {
+  max-width: var(--slide-measure);
+  margin: 0 auto;
+  padding: 32px 24px 88px;
+}
+
+.slide {
+  aspect-ratio: var(--slide-ratio);
+  width: 100%;
+  margin: 0 0 28px;
+  padding: 48px 56px;
+  background: var(--surface);
+  border-radius: 4px;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 35%);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.slide-inner {
+  width: 100%;
+  overflow-y: auto;
+  max-height: 100%;
+}
+
+/* 播放模式由 playback.js 開啟（.is-live）：沒有 JS 時每張照常可讀，
+   整份產物退化成一份可捲動的文件，而不是一片空白。 */
+.deck.is-live .slide {
+  display: none;
+  margin: 0;
+}
+
+.deck.is-live .slide.is-current {
+  display: flex;
+}
+
+.deck.is-live {
+  padding-bottom: 64px;
+}
+
+.slide-masthead {
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 18px;
+  margin-bottom: 28px;
+}
+
+.slide-masthead .kicker {
+  font-size: 13px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 10px;
+}
+
+.slide-masthead .deck-title {
+  font-size: 44px;
+  line-height: 1.25;
+  font-weight: 700;
+  margin: 0;
+}
+
+.slide-masthead .byline {
+  margin: 12px 0 0;
+  font-size: 15px;
+  color: var(--text-secondary);
+}
+
+.section {
+  margin: 0 0 20px;
+}
+
+.section:last-child {
+  margin-bottom: 0;
+}
+
+.section > .section-title {
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1.3;
+}
+
+.section-l1 > .section-title {
+  font-size: 34px;
+  margin: 0 0 20px;
+}
+
+.section-l2 > .section-title {
+  font-size: 26px;
+  margin: 0 0 16px;
+}
+
+.section-l3 > .section-title,
+.section-l4 > .section-title,
+.section-l5 > .section-title,
+.section-l6 > .section-title {
+  font-size: 21px;
+  margin: 0 0 12px;
+  color: var(--text-primary);
+}
+
+.prose {
+  margin: 0 0 16px;
+  line-height: 1.5;
+}
+
+.prose a {
+  color: var(--accent);
+  text-underline-offset: 3px;
+}
+
+.prose ul,
+.prose ol,
+.list {
+  margin: 0 0 16px;
+  padding-left: 1.3em;
+  line-height: 1.5;
+}
+
+.prose li,
+.list li {
+  margin: 0 0 10px;
+  line-height: 1.5;
+}
+
+.prose li:last-child,
+.list li:last-child {
+  margin-bottom: 0;
+}
+
+.prose li::marker,
+.list li::marker {
+  color: var(--text-muted);
+}
+
+.prose ul ul,
+.prose ul ol,
+.prose ol ul,
+.prose ol ol,
+.list .list {
+  margin: 8px 0 0;
+}
+
+.list li > .prose {
+  margin: 0;
+}
+
+.list li > .prose + * {
+  margin-top: 8px;
+}
+
+.list li > .callout,
+.list li > .quote,
+.list li > .code,
+.list li > .table-wrap,
+.list li > .island {
+  margin: 8px 0 0;
+}
+
+.prose code,
+.callout code,
+.quote code,
+.table code,
+.list code {
+  font-family: var(--mono);
+  font-size: 0.9em;
+  background: var(--code-bg);
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+
+.quote {
+  margin: 0 0 18px;
+  padding: 4px 0 4px 18px;
+  border-left: 3px solid var(--accent-soft);
+  color: var(--text-secondary);
+}
+
+.callout {
+  margin: 0 0 18px;
+  padding: 14px 18px;
+  background: #efeee7;
+  border-left: 4px solid var(--accent);
+  border-radius: 2px;
+}
+
+.callout-warn {
+  border-left-color: var(--warn);
+}
+
+.callout .callout-label {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
+.callout-warn .callout-label {
+  color: var(--warn);
+}
+
+.callout > .prose:last-child,
+.quote > .prose:last-child {
+  margin-bottom: 0;
+}
+
+.code {
+  margin: 0 0 18px;
+  padding: 14px 16px;
+  background: var(--code-bg);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.code code {
+  font-family: inherit;
+}
+
+.table-wrap {
+  margin: 0 0 18px;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 16px;
+}
+
+.table th,
+.table td {
+  border-bottom: 1px solid var(--rule);
+  padding: 8px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.table th {
+  color: var(--accent);
+  font-weight: 700;
+  border-bottom: 2px solid var(--accent-soft);
+}
+
+.island {
+  margin: 0 0 18px;
+}
+
+.deck-chrome {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 20px;
+  background: rgb(0 0 0 / 45%);
+  color: #f2efe6;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+}
+
+.deck-progress {
+  font-weight: 700;
+}
+
+.deck-hint {
+  color: #cfc9ba;
+}
+
+@media print {
+  body {
+    background: #fff;
+  }
+
+  .deck.is-live .slide {
+    display: flex;
+    margin: 0 0 28px;
+  }
+
+  .slide {
+    box-shadow: none;
+    break-inside: avoid;
+  }
+
+  .deck-chrome {
+    display: none;
+  }
+}

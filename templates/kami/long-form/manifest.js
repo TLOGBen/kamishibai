@@ -9,7 +9,19 @@ export const manifest = Object.freeze({
   version: '0.1.0',
   description: 'Kami 長文模板 — 紙感單欄閱讀版面',
   language: 'zh-TW',
-  blocks: Object.freeze(['doc', 'section', 'prose', 'quote', 'callout', 'code', 'table', 'raw']),
+  /** No required root form: this template renders whatever sits under `doc`. */
+  root: null,
+  blocks: Object.freeze([
+    'doc',
+    'section',
+    'prose',
+    'list',
+    'quote',
+    'callout',
+    'code',
+    'table',
+    'raw',
+  ]),
 })
 
 export const templateKey = `${manifest.namespace}/${manifest.name}`

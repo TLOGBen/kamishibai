@@ -42,7 +42,7 @@ export async function replayCommand(target, options = {}, env = process.env) {
   const { errors } = validateIr(ir)
   if (errors.length > 0) return { result: { ok: false, errors }, exitCode: EXIT.VALIDATION }
 
-  const { html } = await renderArtifact({
+  const { html, slides } = await renderArtifact({
     doc: ir.doc,
     templateKey: options.template ?? templateKeyOf(ir),
     createdAt: replayCreatedAt(env, ir),
@@ -50,5 +50,5 @@ export async function replayCommand(target, options = {}, env = process.env) {
   })
 
   const slug = basename(path, extname(path)) || 'document'
-  return deliver({ html, slug, options, env })
+  return deliver({ html, slides, slug, options, env })
 }

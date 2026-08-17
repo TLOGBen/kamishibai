@@ -46,9 +46,17 @@ const decode = (s) =>
     .replace(/&gt;/g, '>')
     .replace(/&amp;/g, '&')
 
+/**
+ * Every nesting shape, not just `children`: a `list` holds its items in
+ * `items` (an array of block arrays) and a `deck` holds `slides`. Walking only
+ * `children` would make「清單內的 callout」invisible to every count below —
+ * which is precisely the leak these assertions exist to catch.
+ */
 const collect = (node, out = []) => {
   out.push(node)
   for (const child of node.children ?? []) collect(child, out)
+  for (const slide of node.slides ?? []) collect(slide, out)
+  for (const item of node.items ?? []) for (const child of item) collect(child, out)
   return out
 }
 
@@ -56,6 +64,7 @@ const collect = (node, out = []) => {
 const TYPE_MARKERS = Object.freeze({
   section: 'class="section',
   prose: 'class="prose"',
+  list: 'class="list"',
   quote: 'class="quote"',
   callout: 'class="callout',
   code: 'class="code"',
@@ -165,6 +174,19 @@ describe('A1 render 基本行為', () => {
         /<aside class="callout callout-warn"[^>]*>\s*<span class="callout-label">WARNING<\/span>/,
       )
 
+      // C1：清單外框不再為了 callout 被拆掉——callout 是 list item 的子 block，
+      // 而不是與清單平列的獨立 block。少了這條，退回 S1 的「拆外框」做法
+      // 仍然會讓上面每一條斷言全綠。
+      const lists = blocks.filter((b) => b.type === 'list')
+      expect(lists, `${flavour.name} 清單本身未成為 list block`).toHaveLength(1)
+      expect(lists[0].ordered).toBe(flavour.name === 'ordered')
+      expect(lists[0].items, '三個項目都必須在').toHaveLength(3)
+      const owner = lists[0].items.findIndex((item) => item.some((b) => b.type === 'callout'))
+      expect(owner, 'callout 必須掛在某個 list item 底下').toBeGreaterThanOrEqual(0)
+      expect(body, `${flavour.name} 清單外框遺失`).toMatch(
+        flavour.name === 'ordered' ? /<ol class="list">/ : /<ul class="list">/,
+      )
+
       // 清單本文不得遺失
       for (const text of ['第一項', '第二項', '第三項', '清單內的警示']) {
         expect(decode(body), `清單內容遺失：${text}`).toContain(text)
@@ -184,9 +206,10 @@ describe('A1 render 基本行為', () => {
       expect(hit, `<p class="prose"> 內出現 block-level <${hit?.[1]}>`).toBeNull()
     }
 
-    // 無序與有序清單都必須換成 <div> 容器——容器選擇不能只認其中一種
-    expect(body, '含 ul 的 prose 應以 <div class="prose"> 承載').toMatch(/<div class="prose">\s*<ul>/)
-    expect(body, '含 ol 的 prose 應以 <div class="prose"> 承載').toMatch(/<div class="prose">\s*<ol>/)
+    // C1 起清單走 list block，不再經 prose html 路徑：兩種清單都必須有自己的外框
+    expect(body, '無序清單應為 list block 的 <ul>').toMatch(/<ul class="list">/)
+    expect(body, '有序清單應為 list block 的 <ol>').toMatch(/<ol class="list">/)
+    expect(body, '清單不得再被塞進 prose 容器').not.toMatch(/<div class="prose">\s*<[uo]l>/)
     expect(decode(body)).toContain('純清單項目一')
     expect(decode(body)).toContain('純清單項目二')
     expect(decode(body)).toContain('有序項目一')
@@ -194,15 +217,43 @@ describe('A1 render 基本行為', () => {
     // 純 phrasing 的散文仍應維持 <p>，不得一律改成 div
     expect(body).toMatch(/<p class="prose">/)
 
+    // 容器選擇本身仍是活的規則：prose 的 html 只要含 block-level 內容就必須改用
+    // <div>。清單改走 list block 之後，Markdown 語料已經觸不到這條路（raw 島嶼、
+    // block tree JSON 入口仍會），所以直接餵一份 block tree 把它釘住——否則
+    // 把 Prose 元件寫死成 <p> 會沒有任何測試看得見。
+    const tree = JSON.stringify({
+      template: 'kami/long-form',
+      doc: {
+        type: 'doc',
+        meta: { title: 'prose 容器選擇' },
+        children: [
+          { type: 'prose', html: '<ul><li>由 block tree 直接給的清單 HTML</li></ul>' },
+          { type: 'prose', html: '純 phrasing 的一段話。' },
+        ],
+      },
+    })
+    const treeArtifact = `${OUT_DIR}/prose-container.html`
+    expect(runCli(['render', '-', '-o', treeArtifact], { input: tree }).code).toBe(0)
+    const treeBody = bodyOf(readFileSync(treeArtifact, 'utf8'))
+    expect(treeBody, 'block-level 內容的 prose 應以 <div class="prose"> 承載').toMatch(
+      /<div class="prose">\s*<ul>/,
+    )
+    expect(treeBody, '純 phrasing 的 prose 仍應是 <p>').toMatch(/<p class="prose">/)
+
     // 清單必須有樣式規則，不能落回 UA 預設。選擇器後面要求 , 或 {，
     // 否則 `.prose ul-removed` 這種掏空也會被誤判為還在。
     const css = html.slice(html.indexOf('<style>'), html.indexOf('</style>'))
     expect(css, '.prose ul 缺少樣式規則').toMatch(/\.prose\s+ul\s*[,{]/)
     expect(css, '.prose ol 缺少樣式規則').toMatch(/\.prose\s+ol\s*[,{]/)
     expect(css, '.prose li 缺少樣式規則').toMatch(/\.prose\s+li\s*[,{]/)
+    // C3：list block 也必須落在同一組規則裡，否則清單改走 list block 之後
+    // 整個版面就退回 UA 預設，而上面的 .prose 選擇器照樣全綠。
+    expect(css, '.list 缺少樣式規則').toMatch(/\.list\s*[,{]/)
+    expect(css, '.list li 缺少樣式規則').toMatch(/\.list\s+li\s*[,{]/)
     // 行高必須與 .prose 一致（1.55），不能只留個空殼選擇器
     const listRule = /\.prose\s+(?:ul|ol)\s*[,{][^}]*\}/.exec(css)?.[0] ?? ''
     expect(listRule, '清單樣式應與 .prose 同行高').toContain('1.55')
+    expect(listRule, 'list block 應與 prose 清單共用同一條規則').toContain('.list')
   })
 
   it('test_render_body_blocks: 每個 block 型別在 body 有可辨識輸出，且「IR 有則 body 有」', () => {
@@ -252,6 +303,13 @@ describe('A1 render 基本行為', () => {
           break
         case 'callout':
           expect(body).toContain(`callout-${block.variant}`)
+          break
+        case 'list':
+          // 空 items 會讓「外框有出現」變成恆真——先擋掉內容被清空這種退化
+          expect(block.items.length, 'list block 的 items 不得為空').toBeGreaterThan(0)
+          expect(body, `${block.ordered ? 'ol' : 'ul'} 外框遺失`).toContain(
+            block.ordered ? '<ol class="list">' : '<ul class="list">',
+          )
           break
         default:
           break

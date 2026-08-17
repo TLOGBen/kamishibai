@@ -7,6 +7,8 @@ export const SCHEMA_ID = 'https://kamishibai.dev/schema/ir-1.json'
 const str = { type: 'string' }
 const children = { type: 'array', items: { $ref: '#/$defs/block' } }
 const cells = { type: 'array', items: str }
+/** `list.items` is one block array *per list item* — an array of arrays. */
+const itemGroups = { type: 'array', items: children }
 
 const whenType = (type, then) => ({
   if: { required: ['type'], properties: { type: { const: type } } },
@@ -95,6 +97,12 @@ export function irSchema() {
               html: str,
             },
           }),
+          whenType('list', {
+            required: ['ordered', 'items'],
+            properties: { ordered: { type: 'boolean' }, items: itemGroups },
+          }),
+          whenType('deck', { required: ['slides'], properties: { slides: children } }),
+          whenType('slide', { required: ['children'], properties: { children } }),
         ],
         unevaluatedProperties: false,
       },

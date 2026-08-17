@@ -17,8 +17,17 @@ export const escapeHtml = (value) => String(value ?? '').replace(/[&<>"]/g, (c) 
  */
 export const serializeIr = (ir) => JSON.stringify(ir).replace(/</g, '\\u003c')
 
-/** Assemble the single-file artifact. Nothing here depends on file paths (A8). */
-export function assembleDocument({ language, title, styles, fontCss, body, ir }) {
+/**
+ * Assemble the single-file artifact. Nothing here depends on file paths (A8).
+ *
+ * `script` is the template's own inlined behaviour (playback chrome, SPEC §7.4).
+ * It is emitted without a `src`, so the零外部請求 rules see nothing to flag, and
+ * it sits outside the IR payload so `liveMarkup` still judges it as live markup.
+ * Templates without behaviour emit no element at all, which is what keeps their
+ * artifacts byte-identical to the pre-S3a bytes.
+ */
+export function assembleDocument({ language, title, styles, fontCss, body, script, ir }) {
+  const behaviour = typeof script === 'string' && script.length > 0 ? [`<script>${script}</script>`] : []
   return [
     '<!doctype html>',
     `<html lang="${escapeHtml(language)}">`,
@@ -34,6 +43,7 @@ export function assembleDocument({ language, title, styles, fontCss, body, ir })
     '</head>',
     '<body>',
     body,
+    ...behaviour,
     `<script type="${IR_SCRIPT_TYPE}">${serializeIr(ir)}</script>`,
     '</body>',
     '</html>',

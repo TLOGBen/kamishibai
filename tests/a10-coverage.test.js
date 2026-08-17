@@ -5,7 +5,10 @@ import { repoRoot } from './helpers.js'
 
 const TESTS_DIR = join(repoRoot, 'tests')
 
-/** CONTRACT A10：A1–A9（S1）與 B1–B8（S2）每條在測試碼中有具名對應測試。 */
+/**
+ * CONTRACT A10：A1–A9（S1）、B1–B8（S2）、C1–C8（S3a）每條在測試碼中有具名
+ * 對應測試。條文擴充時這張表跟著長，缺一條就紅。
+ */
 const CRITERIA = Object.freeze({
   A1: [
     'test_render_exit0_single_html',
@@ -101,6 +104,47 @@ const CRITERIA = Object.freeze({
     'test_b8_new_commands_appear_in_help',
     'test_formatter_shared_both_paths',
     'test_a9_no_source_file_exceeds_800_lines',
+  ],
+  C1: [
+    'test_render_list_block',
+    'test_c1_list_no_longer_goes_through_prose',
+    'test_c1_nested_list_is_a_child_block',
+    'test_render_callout_in_list_enters_block_tree',
+  ],
+  C2: [
+    'test_meta_date_normalised',
+    'test_c2_date_reaches_the_rendered_byline',
+    'test_c2_datetime_uses_local_calendar_day',
+    'test_c2_date_only_is_timezone_stable',
+    'test_c2_invalid_date_object_is_dropped_not_crashed',
+  ],
+  C3: ['test_render_body_blocks', 'test_render_prose_container_is_valid_html'],
+  C4: [
+    'test_render_deck',
+    'test_render_json_shape_deck',
+    'test_c4_hr_stays_inert_in_document_mode',
+    'test_c4_cross_family_replay_is_rejected',
+    'test_c4_cross_family_render_is_rejected',
+    'test_c4_doc_tree_into_slides_is_rejected',
+    'test_c4_doc_artifact_replayed_as_slides_is_rejected',
+    'test_c4_markdown_entry_into_slides_still_green',
+    'test_c4_same_family_replay_still_green',
+    'test_c4_guard_covers_every_declared_vocabulary',
+  ],
+  C5: ['test_deck_playback_offline'],
+  C6: ['test_c6_deck_replay_byte_identical'],
+  C7: [
+    'test_example_deck_roundtrip',
+    'test_c7_every_example_kind_resolves',
+    'test_schema_defines_list_deck_slide',
+    'test_c7_schema_rejects_malformed_new_blocks',
+  ],
+  C8: [
+    'test_a9_five_layers_exist',
+    'test_a9_cli_layer_never_imports_vue',
+    'test_a9_no_source_file_exceeds_800_lines',
+    'test_c4_deck_formatter_shared_both_paths',
+    'test_formatter_shared_both_paths',
   ],
 })
 
