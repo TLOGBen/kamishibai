@@ -1,44 +1,42 @@
-# CONTRACT — S2 book 遷移 I：中央產物庫＋open/list/replay＋交付鏈
-> STATUS: sealed（2026-08-17）— 五點全符合：B1–B8 過（B2 依終審條文補丁）、跨 UI 單一 formatter、Verbatim 7/7、F1/F2/F8 修復經回歸突變確認（兩輪 11 findings：4 修復、6 列冊隨行、1 條文補丁）
+# CONTRACT — S3a：list block＋deck/slide 家族＋播放模式最小版
 
 ## 目標
-S1 的渲染脊椎升級為完整交付鏈：render 自動歸檔正本至中央產物庫並落投遞副本；
-Agent 能以 list 查專案呈現史、以 open 解析開啟、以 replay 從產物內嵌 IR 重繪。
-既有 52 測試照綠（S1 為受保護地基）。
+IR 詞彙補上 `list` 型別（修復「清單內 callout 拆外框」的既知取捨），並讓同一份
+Markdown 超集能渲染成簡報：deck 產物含逐張 slide、內建鍵盤播放，離線單檔照舊。
 
 ## 前提（Premises）
-- P1 `已驗`：S1 sealed 基底＝commit 3867e21（CONTRACT 已歸檔 .claude/archived/）。
-- P2 `已驗`：中央庫佈局規格＝SPEC.md §6（`~/.kamishibai/artifacts/<專案>/`）、專案解析四層＝SPEC §8（issues/12 定案）。
-- P3 `已驗`：IR 內嵌欄位完整（S1 A2 已釘），replay 之資料源充分。
-- P4 `已驗`（稽核官修正條款）：`~/.kamishibai` 為戰役保護資產；未經安全閘不得寫入。
+- P1 `已驗`：基底＝S2 sealed（commit 3acfcda）、87 測試綠。
+- P2 `已驗`：SPEC §3 詞彙表為開放集（`list` 為 v1 未列之擴充，S2 隨行清單載重項）；deck/slide 見 SPEC §3 簡報組。
+- P3 `已驗`：播放模式為產物硬能力（SPEC §7.4：全螢幕、方向鍵/空白鍵翻頁、Esc、進度指示；講者備註等進階項不在本片）。
+- P4 `已驗`：frontmatter 裸 `date:` 被 gray-matter 解析為 Date 物件後遭 buildMeta 靜默丟棄（S4 delegate 第一手重現）。
 
 ## 可斷言條文
-G2：觸及面為本 repo S1 程式（已逐檔審過三輪 seal）；新陷阱＝家目錄寫入與跨環境路徑，已升為 B1/B2 條文。
-- [ ] B1 **HOME 紀律**：所有中央庫路徑經單一解析函式，`KAMISHIBAI_HOME` 環境變數優先、預設 `~/.kamishibai`；**整個測試套件禁觸真實家目錄**（測試自我斷言其 HOME 為暫存目錄；CI 可驗）。
-- [ ] B2 **首觸安全閘**：真實執行首次寫入前探測庫根——不存在→建立並寫入 `created-by: kamishibai@<version>` 標記檔；已存在→不動既有檔案、僅追加（禁覆寫既存產物檔，同 slug 依 SPEC 走版本化/時戳尾綴）；**不覆寫須為機械性：產物寫入以 exclusive flag（`wx`）落檔、`EEXIST` 時重取唯一名重試（seal 補釘 F2）；sidecar（copies.json 等一切庫內檔案）同受此律——既存 sidecar 以合併取代截斷（蓋章驗補釘 F8）；**條文補丁（終審裁決）：sidecar 屬索引非記錄——不可解析之損毀索引以新有效索引取代即為正確復原（產物本體恆受 wx 保護、投遞史以產物為準）；sidecar 寫入原子化（tmp+rename）列 S3 隨行**。
-- [ ] B3 render 完成後：中央庫 `artifacts/<專案>/<slug>.html` 正本存在，且與 `-o` 投遞副本 byte-identical；`--json` 輸出增列 `archived:"<abs path>"` 頂層鍵（原三鍵不變）。
-- [ ] B4 `list --json`：輸出當前專案全部產物之陣列，每筆恰含 `{name, template, createdAt, generator, artifact, copies}`；專案解析依「`--project` → `.kamishibai.toml` → git root → cwd」四層，測試至少覆蓋 `--project` 與 git root 兩層；**衍生名兩級驗證（seal 補釘 F1）：使用者明指的 `--project` 嚴格拒收非法名；衍生層（錨點檔／git root／cwd）改決定性正規化（空白→`-` 等）後採用——含空白目錄名下 render 必須 exit 0 且歸檔至正規化專案目錄（釘死測試必備）**。
-- [ ] B5 `open <name|latest> --dry-run`：解析中央庫並輸出目標絕對路徑 exit 0（不開瀏覽器）；查無 → exit 1 `KSB_ARTIFACT_NOT_FOUND`。
-- [ ] B6 `replay <artifact> -o <out>`：讀內嵌 IR 重繪；固定 `KAMISHIBAI_BUILD_TIME` 下與原 render 產物 byte-identical；對無 IR 檔 exit 1 `KSB_IR_MISSING`。
-- [ ] B7 端到端：`fixtures/book-sample.md` 走 render→list→open --dry-run→replay 全鏈之整合測試，全程於測試 HOME 內。
-- [ ] B8 回歸：S1 全部 52 測試照綠；S1 五層分層與單檔 ≤800 行紀律不破；新指令沿用 `--json`/exit code/formatter 既有慣例（含於既有 formatter 測試）。
+G2 陷阱升條文：清單巢狀與 callout-in-list 的歷史取捨（tokens.js 註解明文）→ C1；hr 靜默吞掉 → 本片僅於 deck 模式賦義（C4），文件模式仍列冊。
+- [ ] C1 **list block**：`{type:"list", ordered:bool, items:[block[]…]}` 入 IR schema 與 parser——bullet/ordered/巢狀清單成為真 block；**清單內 callout 不再拆外框**（`<ul|ol>` 結構保留、callout 為 item 內子 block，走 Callout 元件含標籤）；純清單不再經 prose html 路徑。既有「來源 ⇔ IR callout 計數對稱」測試照綠。
+- [ ] C2 **date 修復**：buildMeta 對 Date 物件轉 `YYYY-MM-DD` 字串；裸 `date: 2026-08-17` 與引號版產出相同 meta（釘死測試含兩形）。
+- [ ] C3 模板層：長文模板以 `.prose`-一致樣式渲染 list block（沿用既有清單 CSS）；`test_render_body_blocks` 對稱斷言涵蓋 list。
+- [ ] C4 **deck 模式**：frontmatter `template: kami/slides` 時，文件以 `---`（thematic break）為切頁符編為 `{type:"deck", slides:[…]}`；渲染產物每張為 `<section class="slide">`、16:9 版面基準；首張含 title/kicker（frontmatter）；`--json` 輸出增列 `slides:<int>` 頂層鍵（僅 deck 產物）。
+- [ ] C5 **播放最小版**：deck 產物內建離線 JS——方向鍵/空白鍵翻頁、Esc 離開全螢幕、`f` 進全螢幕、進度指示（`n/N`）；零外部請求照舊（A3 禁形掃描沿用）；lint 對 deck 產物 exit 0（島嶼掃描不誤殺內建播放 script——它是模板層資產非 raw 島嶼）。
+- [ ] C6 IR/replay 一致：deck 產物內嵌 IR 含 deck block tree；`replay` 重繪 byte-identical（KAMISHIBAI_BUILD_TIME 釘死）。
+- [ ] C7 回歸：既有 87 測試照綠；`kamishibai example deck` 輸出合法 deck 語料並 round-trip（example 家族擴充）；schema 輸出含 list/deck/slide 定義且 IR 過驗。
+- [ ] C8 分層與紀律照舊（單檔 ≤800、cli 禁 vue、--json 慣例、formatter 兩路）。
 
 ## 錯不起表面（Surface Inventory）
 | 表面 | 格式 | 釘死測試 |
 |------|------|----------|
-| render `--json` 成功（擴充） | `{"ok":true,"artifact":…,"bytes":…,"archived":"<abs path>"}` 恰四鍵；bytes 真值錨沿用 | test_render_json_shape |
-| list `--json` | 陣列，每筆恰六鍵（見 B4）；空專案輸出 `[]` exit 0 | test_list_json_shape |
-| open `--dry-run` | stdout 恰為目標絕對路徑一行；`--json` 為 `{"ok":true,"path":…}` | test_open_dry_run |
-| replay `--json` | 與 render 同形（含 archived） | test_replay_json_shape |
-| 中央庫佈局 | `<HOME>/artifacts/<專案>/<slug>.html`＋`created-by` 標記檔 | test_store_layout |
+| list 渲染本體 | `<ul>`/`<ol>` 結構保留＋item 內子 block 可辨識；IR⇔body 對稱 | test_render_list_block |
+| deck 產物 | 每張 `<section class="slide">`；張數≡`---` 分段數；首張 title | test_render_deck |
+| render deck `--json` | 四鍵＋`slides:<int>`（文件產物不帶此鍵） | test_render_json_shape_deck |
+| 播放 chrome | 內建 script 存在且含鍵盤處理；lint exit 0 | test_deck_playback_offline |
+| example deck | round-trip 回 render exit 0 | test_example_deck_roundtrip |
 
 ## Verbatim Constants
 ```
-env:            KAMISHIBAI_HOME（預設 ~/.kamishibai）
-庫佈局:         artifacts/<專案名>/<slug>.html
-標記檔:         created-by
-新錯誤碼:       KSB_ARTIFACT_NOT_FOUND
-專案解析序:     --project → .kamishibai.toml → git root → cwd
-list 六鍵:      name, template, createdAt, generator, artifact, copies
-render 四鍵:    ok, artifact, bytes, archived
+list IR 欄位:     type:"list", ordered, items
+deck 切頁符:      ---（thematic break，僅 template: kami/slides 時生效）
+slide 容器:       <section class="slide">
+deck --json 增鍵: slides
+slides 模板 id:   kami/slides@0.1.0（namespace kami）
+播放鍵:           ArrowRight/ArrowLeft/Space=翻頁, f=全螢幕, Esc=離開
+date 正規形:      YYYY-MM-DD
 ```
