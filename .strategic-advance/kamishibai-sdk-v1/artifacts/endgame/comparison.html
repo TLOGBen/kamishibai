@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<title>舊世界 vs 新世界 — kamishibai SDK 端局對照</title>
+<style>
+  :root{
+    --paper:#f5f4ed; --surface:#fffefa; --ink:#23201b; --muted:#6b6459;
+    --rule:#d9d4c6; --accent:#7a2e2e; --accent-soft:#f0e7e0;
+    --old:#8a7a5c; --new:#2f5d50;
+    --mono:'DejaVu Sans Mono','Noto Sans Mono',monospace;
+    --serif:'Noto Serif CJK TC','Noto Serif TC','Songti TC',serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--serif);line-height:1.65}
+  .wrap{max-width:1180px;margin:0 auto;padding:48px 40px 64px}
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+  h1{font-size:2.375rem;font-weight:500;margin:0 0 8px;letter-spacing:.01em}
+  .sub{color:var(--muted);margin:0 0 6px;font-size:15px}
+  .stamp{font-family:var(--mono);font-size:12px;color:var(--muted);margin:0 0 34px}
+  h2{font-size:1.25rem;font-weight:500;margin:44px 0 14px;padding-bottom:7px;border-bottom:1px solid var(--rule)}
+  table{width:100%;border-collapse:collapse;font-size:14px;background:var(--surface)}
+  caption{caption-side:top;text-align:left;font-family:var(--mono);font-size:11.5px;color:var(--muted);padding:0 0 8px}
+  th,td{text-align:left;padding:10px 13px;border-bottom:1px solid var(--rule);vertical-align:top}
+  thead th{font-family:var(--mono);font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);background:#efece1}
+  tbody th{font-weight:500;width:23%}
+  td.old{color:var(--old)}
+  td.new{color:var(--new);font-weight:500}
+  .num{font-family:var(--mono);font-size:13px}
+  .est{font-family:var(--mono);font-size:10.5px;color:#9a5f2b;border:1px solid #d8bfa2;background:#faf1e6;border-radius:3px;padding:0 5px;margin-left:6px;white-space:nowrap;letter-spacing:.04em}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:16px}
+  .panel{background:var(--surface);border:1px solid var(--rule);display:flex;flex-direction:column}
+  .phead{padding:13px 16px;border-bottom:1px solid var(--rule)}
+  .ptag{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+  .panel.o .ptag{color:var(--old)} .panel.n .ptag{color:var(--new)}
+  .ptitle{font-size:16px;font-weight:500;margin:4px 0 3px}
+  .pnote{font-size:12.5px;color:var(--muted);line-height:1.5}
+  .shot{max-height:760px;overflow:hidden;background:#e8e5db;border-top:1px solid var(--rule)}
+  .shot img{display:block;width:100%;height:auto}
+  .pfoot{font-family:var(--mono);font-size:11px;color:var(--muted);padding:9px 16px;border-top:1px solid var(--rule);background:#faf9f3}
+  .note{font-size:13.5px;color:var(--muted);margin-top:14px;line-height:1.6}
+  .note code{font-family:var(--mono);font-size:12.5px;background:var(--accent-soft);padding:1px 5px;border-radius:3px;color:var(--accent)}
+  ul{margin:10px 0 0;padding-left:20px;font-size:13.5px;color:var(--muted)}
+  li{margin-bottom:5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">kamishibai SDK — Endgame F6 / VC4</p>
+  <h1>舊世界 vs 新世界</h1>
+  <p class="sub">模型手工著作呈現外殼（chrome），對照 SDK 確定性渲染：同一台真實機器、同一組截圖參數。</p>
+  <p class="stamp">captured 2026-08-18 · engine 0.1.0 · template kami/long-form@0.1.0 · viewport 1280×720 · media print · JS off</p>
+
+  <h2>度量對照</h2>
+  <table>
+    <caption>標記 <span class="est">estimate</span> 者為推估值，其餘為本次真實量測。</caption>
+    <thead>
+      <tr><th>面向</th><th>舊：baransu golden-template</th><th>新：kamishibai SDK</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th>來源尺寸</th>
+        <td class="old"><span class="num">26,319 B</span> 參考模板本身<br><span class="pnote">模型須先讀入，再照樣重寫一份外殼</span></td>
+        <td class="new"><span class="num">31,285 B</span> <code>SPEC.md</code><br><span class="pnote">純內容，無任何外殼</span></td>
+      </tr>
+      <tr>
+        <th>產物尺寸</th>
+        <td class="old"><span class="num">26,319 B</span><br><span class="pnote">外部字體、未內嵌</span></td>
+        <td class="new"><span class="num">3,221,399 B</span><br><span class="pnote">含 56 個 @font-face、3,037,632 B 內嵌字體 → 真正離線單檔</span></td>
+      </tr>
+      <tr>
+        <th>渲染牆鐘時間</th>
+        <td class="old"><span class="num">~30–90 s</span><span class="est">estimate</span><br><span class="pnote">模型逐 token 生成外殼的時間，非機器渲染</span></td>
+        <td class="new"><span class="num">210 ms</span><br><span class="pnote"><code>render SPEC.md</code>，真實量測</span></td>
+      </tr>
+      <tr>
+        <th>品質閘門</th>
+        <td class="old"><span class="pnote">人／模型自審；無機器可執行的產物 lint</span></td>
+        <td class="new"><span class="num">lint 213 ms → exit 0</span><br><span class="pnote">零外部請求 + 內嵌 IR schema 一次過</span></td>
+      </tr>
+      <tr>
+        <th>外殼的模型 token 成本</th>
+        <td class="old"><span class="num">~6,580 in + ~6,580 out</span><span class="est">estimate</span><br><span class="pnote">每份文件都要重付一次（26,319 B ÷ ~4 B/token）</span></td>
+        <td class="new"><span class="num">0</span><br><span class="pnote">3,190,114 B 的外殼與字體由 SDK 確定性產生，模型一個 token 都不付</span></td>
+      </tr>
+      <tr>
+        <th>可重繪性</th>
+        <td class="old"><span class="pnote">產物即終點；換皮＝重新生成整份</span></td>
+        <td class="new"><span class="num">52,642 B 內嵌 IR</span><br><span class="pnote">210 個 block；<code>replay</code> 可換模板重繪，零模型參與</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="note">
+    推估基礎：外殼 token 以 ASCII 為主的 HTML/CSS 取 <code>~4 bytes/token</code> 概算；舊世界生成時間取一般模型輸出速率概算。
+    兩者皆標為推估，不列為量測證據。內容本身的著作成本在新舊兩制相同，故不計入對照。
+  </p>
+
+  <h2>視覺對照</h2>
+  <div class="cols">
+    <div class="panel o">
+      <div class="phead">
+        <div class="ptag">舊 · OLD</div>
+        <div class="ptitle">baransu book golden-template</div>
+        <div class="pnote">模型讀入此模板、逐份重寫外殼。截圖方式：最小 Playwright 腳本（<code>kamishibai snapshot</code> 以 <code>KSB_IR_MISSING</code> 拒收——它沒有內嵌 IR，這正是舊世界的性質）。</div>
+      </div>
+      <div class="shot"><img src="old-baransu.png" alt="baransu golden-template 截圖"></div>
+      <div class="pfoot">old-baransu.png · 1280×1035 · 50,675 B · 全幅</div>
+    </div>
+    <div class="panel n">
+      <div class="phead">
+        <div class="ptag">新 · NEW</div>
+        <div class="ptitle">kamishibai render SPEC.md</div>
+        <div class="pnote">同一份規格書，經 <code>kamishibai render</code> 確定性渲染。截圖方式：<code>kamishibai snapshot</code> 本身。</div>
+      </div>
+      <div class="shot"><img src="new-kamishibai.png" alt="kamishibai 渲染 SPEC.md 截圖"></div>
+      <div class="pfoot">new-kamishibai.png · 1280×21098 · 3,498,729 B · 此處僅顯示頂端 760 px</div>
+    </div>
+  </div>
+
+  <h2>本次真實運行留下的事實</h2>
+  <ul>
+    <li>真實 home <code>~/.kamishibai</code> 由 <code>setup --json</code> 冷啟建立，標記檔 <code>created-by: kamishibai@0.1.0</code>，模板命名空間 <code>kami/long-form</code>、<code>kami/slides</code> 就位。</li>
+    <li>第一份真書 <code>SPEC.md</code> 一次渲染成功，正典副本歸檔於 <code>~/.kamishibai/artifacts/kamishibai/SPEC.html</code>。</li>
+    <li>首次 lint 曾以 <code>KSB_BANNED_FONT</code> 擋下——SPEC.md 的正文記載了 TsangerJinKai02 授權 NO-GO，而禁字串規則當時掃全檔。已依 CONTRACT A3「內容文字…不在此限」把該規則收斂到 CSS 區域（與外部資源規則同一套 scope 機制）。</li>
+  </ul>
+
+</div>
+</body>
+</html>

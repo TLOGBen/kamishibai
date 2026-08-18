@@ -1,0 +1,250 @@
+SCRIBE PROBE LOG — round 9 (ninth consolidation)
+posture: FULL RIG (full reconstruction — every reachable gating claim), per commander Decision C
+round timestamp: 2026-08-18T22:57:02+08:00
+campaign root: /home/vakarve/project/kamishibai
+extended terrain (Decision D, effective at F6 entry): /home/vakarve/.kamishibai
+tooling self-disclosure: read-only probes only — date, git status -sb / --short, git diff --stat,
+  Read on .git/refs, and file-surface reads (ls/find/grep/head/sed) confined to the campaign root
+  and the extended store path. No npm, no vitest, no writes outside the mission workspace.
+  git log was NOT invoked this round; HEAD identity was taken from .git/refs directly.
+
+================================================================================
+[P1] GIT SURFACE
+================================================================================
+$ date "+%Y-%m-%dT%H:%M:%S%z"
+2026-08-18T22:54:11+0800
+
+$ git -C /home/vakarve/project/kamishibai status -sb
+## main...origin/main
+
+$ git -C /home/vakarve/project/kamishibai status --short
+(empty — tracked tree clean, no untracked files reported)
+
+$ git -C /home/vakarve/project/kamishibai diff --stat
+(empty)
+
+Read /home/vakarve/project/kamishibai/.git/refs/heads/main
+d16cb5d164ac66427cf1eb34620c033fe1d2ed92
+
+Read /home/vakarve/project/kamishibai/.git/refs/remotes/origin/main
+d16cb5d164ac66427cf1eb34620c033fe1d2ed92
+
+=> HEAD == origin/main == d16cb5d164ac66427cf1eb34620c033fe1d2ed92; tracked tree clean;
+   the packet's commit d16cb5d is confirmed as the pushed tip.
+
+================================================================================
+[P2] SEAL RECORDS — VC1
+================================================================================
+$ grep -rn 'STATUS: sealed' /home/vakarve/project/kamishibai/.claude/archived/
+.../CONTRACT.md-1787060990:2:> STATUS: sealed（2026-08-18）— five points compliant: D1–D7 pass first-hand, cross-UI pinned at rejection strength, Verbatim 6/6 zero drift, probes 1/2 caught (five ride-along coverage notes, none blocking)
+.../CONTRACT.md-1786972817:2:> STATUS: sealed（2026-08-17）— 五點全符合：B1–B8 過…
+.../CONTRACT.md-1786881210:2:> STATUS: sealed（2026-08-16）— 五點全符合：A1–A10 逐條過…
+.../CONTRACT.md-1786979018:2:> STATUS: sealed（2026-08-17）— 五點全符合：C1–C8 過…
+
+$ grep -c 'STATUS: sealed' /home/vakarve/project/kamishibai/CONTRACT.md
+1
+
+$ head -2 /home/vakarve/project/kamishibai/CONTRACT.md
+# CONTRACT — S5: serve/reload + comment loop + template namespace (VC2) + delivery polish
+> STATUS: sealed（2026-08-18）— five points compliant: E1–E7 pass first-hand (F1 anchor-drift fixed under the living-canonical ruling, red-capable both directions), Verbatim zero drift, cross-UI pinned on real paths, S4 bundled verification passed (two ride-along pin notes, none blocking)
+
+$ head -1 of each archived contract
+CONTRACT.md-1786881210: # CONTRACT — S1 核心脊椎：IR＋render＋Kami 長文模板＋CLI 基本盤
+CONTRACT.md-1786972817: # CONTRACT — S2 book 遷移 I：中央產物庫＋open/list/replay＋交付鏈
+CONTRACT.md-1786979018: # CONTRACT — S3a：list block＋deck/slide 家族＋播放模式最小版
+CONTRACT.md-1787060990: # CONTRACT — S3b: diagram block v1 + export chains (pdf/pptx) + snapshot
+
+$ ls -1 /home/vakarve/project/kamishibai/.claude/archived/
+CONTRACT.md-1786881210  CONTRACT.md-1786972817  CONTRACT.md-1786979018  CONTRACT.md-1787060990
+
+=> SEALED SLICE RECORDS = 5: S1, S2, S3a, S3b (archived) + S5 (sealed in the LIVE slot,
+   not yet archived because no successor contract has opened).
+   Composition note recorded honestly: the nominal five slices were S1/S2/S3/S4/S5; S3 was split
+   into S3a+S3b by the Regrouping ruling, each carrying its own seal record, and S4 carries no
+   standalone seal record — its verification is discharged inside the S5 stamp, whose text
+   ("S4 bundled verification passed") is first-hand probed above. SEALED_SLICE_COUNT == 5 holds
+   on the count; the S4 clause holds by the bundled-verification wording, per ruling A.
+
+$ grep -n -iE 'S4|proofread|journal|verification|bundle' /home/vakarve/project/kamishibai/CONTRACT.md
+2:> STATUS: sealed（2026-08-18）… S4 bundled verification passed (two ride-along pin notes, none blocking)
+16:  Vite HMR — a dev-preview need does not justify a bundler integration; the deviation from SPEC
+48:- [ ] E7 Regression: 148 existing tests green; S4 corpus (proofread/journal fixtures) renders and
+49:      lints clean — its bundled verification happens in this slice's seal round; layering, ≤800
+
+================================================================================
+[P3] CENTRAL STORE — extended terrain under Decision D
+================================================================================
+$ ls -la /home/vakarve/.kamishibai
+"/home/vakarve/.kamishibai": No such file or directory (os error 2)
+
+$ find /home/vakarve -maxdepth 1 -name '.kamishibai*'
+(no results)
+
+=> centralStore = ABSENT. The first-touch gate asserted in Event 2 is confirmed by probe:
+   the store does not exist prior to F6 execution, so the recovery for F6's mutation scope is
+   removal of a store this campaign creates, not restoration from a backup.
+
+$ grep -rn 'created-by|createdBy|CREATED_BY' /home/vakarve/project/kamishibai/src/delivery/home.js
+20:export const MARKER_FILENAME = 'created-by'
+47:/** `<HOME>/created-by` */
+15:/** Verbatim CONTRACT constant — default store root is `~/.kamishibai`. */
+16:export const DEFAULT_HOME_DIRNAME = '.kamishibai'
+28:/** Absolute store root: `KAMISHIBAI_HOME` wins, else `~/.kamishibai`. */
+
+Read /home/vakarve/project/kamishibai/tests/global-setup.js
+  CONTRACT B1 suite-wide teardown tripwire: throws if the real store REAL_HOME was written to
+  during a test run. Corroborates that the absence of ~/.kamishibai is a guarded invariant,
+  not an accident.
+
+================================================================================
+[P4] VC2 — Kami template manifest
+================================================================================
+$ find /home/vakarve/project/kamishibai/templates -maxdepth 4
+templates/kami/{shared/blocks.js, slides/{playback,components,manifest,styles.css,index}.js,
+                long-form/{components,manifest,styles.css,index}.js}
+  -> one namespace 'kami', two template packs, manifests are .js not .toml
+
+$ find /home/vakarve/project/kamishibai -path '*/node_modules' -prune -o -name '*.toml' -print
+/home/vakarve/project/kamishibai/out-test/b4/anchored-list/.kamishibai.toml
+/home/vakarve/project/kamishibai/out-test/b4/anchored/.kamishibai.toml
+  -> the only TOML files in the repo are project sidecars under the gitignored test-output tree;
+     no templates/<ns>/<name>/manifest.toml anywhere in the repo.
+
+$ grep -rn 'manifest.toml' /home/vakarve/project/kamishibai/src/
+src/delivery/home.js:21:/** Verbatim CONTRACT constant — `templates/<namespace>/<name>/manifest.toml`. */
+src/delivery/templates.js:14: * `templates/<namespace>/<name>/manifest.toml` is that record —
+src/delivery/templates.js:24:export const MANIFEST_FILENAME = 'manifest.toml'
+src/delivery/templates.js:27: * Verbatim CONTRACT constant — manifest.toml keys, in output order.
+
+=> The VC2 PRODUCING CAPABILITY shipped and sealed with S5 (src/delivery/templates.js + toml.js,
+   CLI command templates.js). The VC2 CRITERION ITSELF is now decidable for the first time, because
+   Decision D brings the store's path inside the probed terrain: the store is absent, therefore no
+   manifest.toml exists in the real store's template namespace. VC2 = FAIL (was UNKNOWN under
+   scope pinning). This is a sharpening of the record, not a regression of the world.
+
+================================================================================
+[P5] VC3 — book render with IR, lint-clean
+================================================================================
+$ find /home/vakarve/project/kamishibai -maxdepth 1 -type d -name 'out*'
+/home/vakarve/project/kamishibai/out-test
+/home/vakarve/project/kamishibai/out
+
+$ grep -rl 'application/kamishibai+json' out out-test | wc -l
+119
+
+$ cat /home/vakarve/project/kamishibai/.gitignore
+node_modules/
+out/
+out-test/
+*.log
+
+=> The IR-embedding conjunct is abundantly satisfied on the file surface (119 HTML artifacts),
+   but all of them sit under gitignored trees, so none is tracked or archived as campaign evidence
+   in the sense Event 2 requires. The 'lint exit 0' conjunct requires npm/vitest execution, which is
+   outside the scribe bash allowed set. The conjunction therefore stays UNDECIDABLE => UNKNOWN.
+
+================================================================================
+[P6] VC4 — snapshot comparison artifact
+================================================================================
+$ ls -1 .strategic-advance/kamishibai-sdk-v1/artifacts/ | grep -ci snapshot
+0
+$ ls -1 .strategic-advance/kamishibai-sdk-v1/artifacts/ | wc -l
+13
+  (13 entries: 8 probe logs, 1 seed, 4 state drafts — no snapshot comparison)
+
+=> VC4 = FAIL. The producing capability (src/export/snapshot.js, CLI snapshot) has been sealed
+   since S3b; what is missing is the comparison artifact itself, which is F6 mutation-scope work.
+
+================================================================================
+[P7] TEST SURFACE — packet asserts 186
+================================================================================
+$ ls -1 tests/*.test.js | wc -l
+34
+  (a1-a10, b1-b8, c1/c2/c4-deck/c4-vocabulary-guard/c7, d1/d3/d6/d7,
+   e1-serve, e2-comments, e3-templates, e5-list-human, e6-open-chain, e7-conventions, s4-doc-types;
+   plus non-test support files global-setup.js, helpers.js, real-home.js)
+
+$ grep -rc '\bit(' tests/*.test.js   [sum]
+176
+
+$ grep -rnoE '\bit\.[a-z]+\(|\bdescribe\.[a-z]+\(' tests/*.test.js | wc -l
+0        (no .each / .skip / .only parameterisation)
+
+$ grep -rn '^\s*test(' tests/*.test.js | wc -l
+0        (no test()-style declarations that a plain it( count would miss)
+
+$ find . -name '*.test.js' -not -path './node_modules/*' | wc -l
+34       (no test files outside tests/)
+
+$ cat vitest.config.js
+  globalSetup only; no include override, no repeats.
+
+Loop-generated cases — deep-indent scan:
+$ grep -rn '^\( \)\{4,\}it(' tests/*.test.js
+tests/s4-doc-types.test.js:53,63,75,89,99,127   -> nested inside describe('錯字修改表')/describe(...),
+                                                   NOT inside a loop (verified by reading lines 44-56)
+tests/a1-render.test.js:140                     -> inside `for (const flavour of LIST_FLAVOURS)` at :139
+$ sed -n '133,142p' tests/a1-render.test.js
+  const LIST_FLAVOURS = [ {name:'bullet',...}, {name:'ordered',...} ]   -> 2 entries
+$ grep -c '\bit(' tests/helpers.js tests/real-home.js tests/global-setup.js
+0, 0, 0
+
+ARITHMETIC: 176 static it() - 1 loop-nested declaration + 2 loop expansions = 177 runtime cases.
+PACKET ASSERTS: 186.  DELTA = 9.
+Executing vitest is outside the scribe bash allowed set, so this cannot be settled first-hand.
+=> recorded UNKNOWN, raised as a discrepancy (the same class as round 8's 148-vs-140, delta 8).
+
+================================================================================
+[P8] CODE SURFACE — S5 world delta
+================================================================================
+$ find src -type f -name '*.js' | wc -l
+63      (was 48 at S3b)
+$ ls -1 src/delivery/
+atomic.js comments.js home.js open.js project.js read.js run.js store.js templates.js toml.js write.js
+        (templates.js and toml.js are new with S5; comments.js carries the comment loop)
+$ ls -1 src/cli/commands/
+close.js comments.js debug.js example.js export.js lint.js list.js open.js render.js replay.js
+schema.js serve.js setup.js snapshot.js templates.js
+        (serve.js, comments.js, templates.js, close.js are the S5 additions)
+
+================================================================================
+[P9] RISK AND LOSS SURFACES
+================================================================================
+$ find . -path '*/node_modules' -prune -o \( -name '*.ttf' -o -name '*.otf' -o -name '*.woff*' \) -print
+(empty — zero font binaries in the repo)
+
+$ grep -rl 'TsangerJinKai' src templates
+src/core/lint.js
+$ grep -n 'TsangerJinKai' -B3 -A6 src/core/lint.js
+21-const BANNED_STRINGS = Object.freeze([
+22:  { needle: 'TsangerJinKai', code: CODES.BANNED_FONT, why: '未取得再散布授權的字體' },
+23-])
+=> The single reference is a LINTER BAN RULE, i.e. a mechanised guard, not an embed.
+   The font-licence risk stays CONTROLLED and its guard is now enforced by tooling rather than
+   by discipline alone. Unacceptable outcome 2 remains ABSENT.
+
+=> central-store-overwrite risk: the protected asset ~/.kamishibai does not exist (P3), so there is
+   presently nothing to overwrite; combined with the created-by marker and the CONTRACT B1 suite
+   tripwire, the risk is CONTROLLED at F6 entry.
+
+=> Unacceptable outcome 1 (existing plugin renderers broken before migration completes): the
+   baransu/common plugin files live outside the campaign root and outside the Decision D extension,
+   so they are not probed. Stays UNKNOWN for operator arbitration.
+
+=> Unacceptable outcome 3 (budget consumed by bookkeeping without world delta): this round carries a
+   real double delta — S5 sealed (VC1 4/5 -> 5/5) and F4 closed. ABSENT.
+
+================================================================================
+[P10] SUMMARY OF DECIDABLE MOVEMENT THIS ROUND
+================================================================================
+VC1 vc1-five-seals            FAIL    -> PASS     (5 seal records probed)
+VC2 vc2-kami-template         UNKNOWN -> FAIL     (now decidable under Decision D; store absent)
+VC3 vc3-book-render           UNKNOWN -> UNKNOWN  (lint conjunct unreachable)
+VC4 vc4-snapshot-compare      FAIL    -> FAIL     (no comparison artifact)
+F4 entry/exit                 FAIL    -> PASS     (split reading + bundled-verification stamp)
+F5 exit                       FAIL    -> PASS     (live CONTRACT.md line 2 sealed)
+F6 entry                      FAIL    -> PASS     (five seals present)
+F6 recovery                   UNKNOWN -> PASS     (first-touch gate: store absent, removal is the path)
+risk central-store-overwrite  UNKNOWN -> PASS(CONTROLLED)
+world centralStore            UNPROBED-> ABSENT
+test count 186                          UNKNOWN   (discrepancy — file surface computes 177)

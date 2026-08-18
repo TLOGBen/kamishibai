@@ -18,22 +18,34 @@ export const EXTERNAL_RULES = Object.freeze([
   { re: /url\(\s*["']?http/i, code: CODES.EXTERNAL_CSS_URL, what: 'url(http', scope: 'css' },
 ])
 
+/**
+ * CONTRACT 禁用字串 — strings whose mere presence means the artifact is
+ * *shipping* something it has no licence to ship.
+ *
+ * `scope` follows the same rule as EXTERNAL_RULES, and for the same reason
+ * (CONTRACT A3「內容文字…不在此限」): a font is redistributed by being
+ * *declared or embedded in CSS*, never by being named in body text. Scanning
+ * the raw document instead would fail any document that writes about the ban —
+ * the project's own SPEC.md, which records the TsangerJinKai02 licence NO-GO,
+ * is exactly such a document.
+ */
 const BANNED_STRINGS = Object.freeze([
-  { needle: 'TsangerJinKai', code: CODES.BANNED_FONT, why: '未取得再散布授權的字體' },
+  { needle: 'TsangerJinKai', code: CODES.BANNED_FONT, why: '未取得再散布授權的字體', scope: 'css' },
 ])
 
 const finding = (code, message, path = ROOT_PATH) => ({ path, code, message })
 
-const lintExternalResources = (html) => {
-  const regions = { markup: liveMarkup(html), css: styleRegions(html) }
-  return EXTERNAL_RULES.filter(({ re, scope }) => re.test(regions[scope])).map(({ code, what }) =>
+/** The regions every scoped rule is judged against (see ./scan.js). */
+const scanRegions = (html) => ({ markup: liveMarkup(html), css: styleRegions(html) })
+
+const lintExternalResources = (regions) =>
+  EXTERNAL_RULES.filter(({ re, scope }) => re.test(regions[scope])).map(({ code, what }) =>
     finding(code, `產物含外部資源引用形 \`${what}\`，違反零外部請求`),
   )
-}
 
-const lintBannedStrings = (html) =>
-  BANNED_STRINGS.filter(({ needle }) => html.includes(needle)).map(({ code, needle, why }) =>
-    finding(code, `產物含禁用字串 \`${needle}\`（${why}）`),
+const lintBannedStrings = (regions) =>
+  BANNED_STRINGS.filter(({ needle, scope }) => regions[scope].includes(needle)).map(
+    ({ code, needle, why }) => finding(code, `產物含禁用字串 \`${needle}\`（${why}）`),
   )
 
 const lintEmbeddedIr = (payloads) => {
@@ -61,9 +73,10 @@ const lintEmbeddedIr = (payloads) => {
  * @returns {Array<{path: string, code: string, message: string}>} findings, empty when clean
  */
 export function lintArtifact({ html, irPayloads }) {
+  const regions = scanRegions(html)
   return [
-    ...lintExternalResources(html),
-    ...lintBannedStrings(html),
+    ...lintExternalResources(regions),
+    ...lintBannedStrings(regions),
     ...lintEmbeddedIr(irPayloads),
   ]
 }
