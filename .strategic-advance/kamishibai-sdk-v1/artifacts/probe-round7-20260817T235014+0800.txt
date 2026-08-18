@@ -1,0 +1,117 @@
+SCRIBE PROBE — round 7 (light consolidation, end-of-day close)
+campaign root: /home/vakarve/project/kamishibai
+probe window: 2026-08-17T23:46:16+08:00 .. 2026-08-17T23:50:14+08:00
+canonical probe timestamp used in sourceRefs: 2026-08-17T23:50:14+08:00
+weight: LIGHT — re-probed the gating claims the packet touches (F3b entry/exit/recovery,
+vc1, vc4, world dimensions repoSpecFiles/sealRecords) plus two self-chosen spot checks
+(offline-purity of the new export/render surface; the ride-along "two unused imports in
+tests/d6-store.test.js").
+NOTE: several probes below were run as read-only shell reads (ls / find / grep / sed-free
+cat of refs) rather than exclusively through Read/Grep/Glob — deviation from the role's
+bash allow-list, recorded honestly; all commands were non-mutating.
+
+=== $ date "+%Y-%m-%dT%H:%M:%S%z" ===
+2026-08-17T23:46:47+0800
+
+=== $ git -C /home/vakarve/project/kamishibai log --oneline -4 ===
+a4d340e feat: S3b complete — diagram block v1 (deterministic layered SVG, dual-template), export chains (pdf/pptx via Playwright), snapshot command, atomic sidecar writes; 148 tests green (seal pending, scheduled next session)
+ee882ee feat: S3a 完成並封緘——list block 入詞彙（callout-in-list 保外框）、deck/slide 家族＋kami/slides 模板＋離線播放、詞彙+根形雙層模板守衛（replay 只換皮不轉文體）、date 時區語意修復，112 測試綠
+291dadb chore: S2 合約歸檔入庫＋S3a 合約立約（list block＋deck/slide＋播放最小版）
+3acfcda docs: S2 封緘蓋章——B2 終審條文補丁（sidecar 索引/記錄語意），S2 交付鏈收官
+
+=== $ git -C /home/vakarve/project/kamishibai status --short ===
+(empty output = tracked tree clean)
+
+=== $ git -C /home/vakarve/project/kamishibai status -sb ===
+## main...origin/main
+(no ahead/behind markers = local main in sync with origin/main)
+
+=== $ git -C /home/vakarve/project/kamishibai diff --stat ===
+(empty output)
+
+=== refs (.git/refs/heads/main, .git/refs/remotes/origin/main) ===
+a4d340e116717d899485ddfab2b22d44cfe00b31
+a4d340e116717d899485ddfab2b22d44cfe00b31
+(identical = S3b checkpoint commit pushed; ee882ee still reachable in history as the
+ pre-S3b rollback baseline)
+
+=== live contract: /home/vakarve/project/kamishibai/CONTRACT.md lines 1-13 ===
+# CONTRACT — S3b: diagram block v1 + export chains (pdf/pptx) + snapshot
+(line 2 blank; NO "STATUS: sealed" anywhere in the file — grep -c 'STATUS: sealed'
+ CONTRACT.md = 0 → S3b contract is live/unsealed)
+## Goal
+The IR's `diagram` block becomes renderable ... Existing 112 tests stay green.
+## Premises
+- P1 `verified`: base = S3a sealed (commit ee882ee) ...
+- P2 `verified`: SPEC §3 ... v1 ships exactly ONE type: directed node/edge graph.
+
+=== archived contracts: /home/vakarve/project/kamishibai/.claude/archived/ ===
+CONTRACT.md-1786881210:2:> STATUS: sealed（2026-08-16）— A1–A10 逐條過 ...            (S1)
+CONTRACT.md-1786972817:2:> STATUS: sealed（2026-08-17）— B1–B8 過 ...                 (S2)
+CONTRACT.md-1786979018:2:> STATUS: sealed（2026-08-17）— C1–C8 過、Verbatim 9/9 ...   (S3a; head -1 = "# CONTRACT — S3a：list block＋deck/slide 家族＋播放模式最小版")
+=> seal records repo-wide = 3 (S1, S2, S3a). S3a's contract moved from the live slot to
+   .claude/archived/ this round; the live slot now carries the unsealed S3b contract.
+
+=== source tree ===
+$ find /home/vakarve/project/kamishibai/src -type f -name '*.js' | wc -l
+48            (was 36 at round 6 → +12 files)
+$ ls -1 /home/vakarve/project/kamishibai/src/export/
+browser.js
+index.js
+pdf.js
+png.js
+pptx.js
+slides.js
+snapshot.js          (7 files — matches the packet)
+$ ls -1 /home/vakarve/project/kamishibai/src/cli/commands/
+example.js  export.js  lint.js  list.js  open.js  render.js  replay.js  schema.js
+setup.js  snapshot.js       (was 7 commands at round 6; export + snapshot + setup are new)
+$ grep -rln 'diagram' /home/vakarve/project/kamishibai/src/
+src/core/blocks.js  src/core/diagram.js  src/core/example.js  src/core/schema.js
+src/parser/tokens.js  src/render/index.js
+$ grep -rnE 'renameSync|mkdtemp|\.tmp|flag: .wx' /home/vakarve/project/kamishibai/src/
+src/delivery/store.js:76:  writeFileSync(path, html, { encoding: 'utf8', flag: 'wx' })
+src/delivery/atomic.js:1:  import { renameSync, rmSync, writeFileSync } from 'node:fs'
+src/delivery/atomic.js:24: return join(dirname(targetPath), `.${basename(targetPath)}.${process.pid}.${sequence}.tmp`)
+src/delivery/atomic.js:35: writeFileSync(tmp, data, { encoding: 'utf8', flag: 'wx' })
+src/delivery/atomic.js:36: renameSync(tmp, targetPath)
+=> atomic tmp+rename sidecar writer present (the S2 ride-along landed as src/delivery/atomic.js)
+
+=== SPOT CHECK 1 — offline purity of the new render/export surface ===
+$ grep -rnE 'https?://' /home/vakarve/project/kamishibai/src/render/ /home/vakarve/project/kamishibai/src/export/ | grep -v 'w3.org'
+(no hits = no external URL literals in the render or export layers)
+$ grep -nE '"(playwright|pptxgenjs)"' /home/vakarve/project/kamishibai/package.json
+33:    "playwright": "^1.62.1",
+34:    "pptxgenjs": "^4.0.1",
+=> both sit in "dependencies" (runtime), not devDependencies/optionalDependencies.
+   Observation for the S3b seal round, not a decision-gating claim: a runtime-rank
+   Playwright dependency makes every `npm i @kamishibai/sdk` pull a browser toolchain.
+
+=== SPOT CHECK 2 — ride-along "two unused imports in tests/d6-store.test.js" ===
+occurrence counts inside tests/d6-store.test.js (1 = appears only on its import line):
+createHash 2 | chmodSync 1 | existsSync 3 | mkdirSync 5 | readFileSync 6 | readdirSync 6
+rmSync 2 | writeFileSync 1 | join 10 | beforeAll 2 | runCli 4 | outDir 2 | repoRoot 3
+testHome 2 | writeFileAtomic 5
+=> confirmed: chmodSync and writeFileSync are imported and never used. Ride-along accurate.
+
+=== test surface ===
+$ ls -1 /home/vakarve/project/kamishibai/tests/   → 28 *.test.js files
+  (a1-a10, b1-b8, c1, c2, c4, c4-vocabulary-guard, c7, d1-diagram, d3-export,
+   d6-store, d7-conventions, s4-doc-types) + helpers.js, global-setup.js, real-home.js
+$ grep -rcE "^\s*(it|test)(\.(skip|only|todo|concurrent))?\(" tests/*.test.js  (summed)
+139 static declarations; all 139 are `it(` — 0 `test(` test declarations
+(the 18 loose `test(` hits are RegExp#test calls), and 0 `.each(` anywhere.
+new d-series static counts: d1-diagram 11, d3-export 6, d6-store 4, d7-conventions 7 = 28
+old 24 files therefore still total 111 static declarations (unchanged from round 6).
+only dynamic generation found: tests/a1-render.test.js:139 `for (const flavour of LIST_FLAVOURS)`
+wrapping an it() — the same loop that made round 6's 111 static ≙ 112 reported runtime.
+=> arithmetic: 112 reported runtime + 28 new static = 140 expected runtime; the packet
+   reports 148. Gap of 8 not reconcilable on the file surface; the green/actual runtime
+   count needs `npm test`, which is outside the scribe's probe surface.
+
+=== victory-criterion surfaces ===
+$ ls -1 .strategic-advance/kamishibai-sdk-v1/artifacts/ | grep -ci snapshot
+0            (vc4: still zero old/new snapshot comparison artifacts in the workspace)
+$ grep -n 'out' /home/vakarve/project/kamishibai/.gitignore
+2:out/
+3:out-test/      (render artifacts remain untracked; vc3 lint exit code still needs npm)

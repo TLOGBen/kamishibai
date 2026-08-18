@@ -1,66 +1,71 @@
-# CONTRACT — S3b: diagram block v1 + export chains (pdf/pptx) + snapshot
-> STATUS: sealed（2026-08-18）— five points compliant: D1–D7 pass first-hand, cross-UI pinned at rejection strength, Verbatim 6/6 zero drift, probes 1/2 caught (five ride-along coverage notes, none blocking)
+# CONTRACT — S5: serve/reload + comment loop + template namespace (VC2) + delivery polish
 
 ## Goal
-The IR's `diagram` block becomes renderable: a structured node-and-edge spec turns into
-deterministic, offline SVG through the template pipeline. Artifacts gain an export path
-(document → PDF, deck → PPTX) and a `snapshot` command (artifact → PNG) so an agent can
-*see* what it rendered. Existing 112 tests stay green.
+The SDK's delivery layer completes: a live preview server with auto-reload, the block-anchored
+comment loop (human leaves comments on a served artifact; an agent reads them as data), and the
+central store gains a template namespace holding a minimal Kami template package with a TOML
+manifest — the capability victory criterion VC2 requires. Existing 148 tests stay green.
 
 ## Premises
-- P1 `verified`: base = S3a sealed (commit ee882ee); two-layer template guard (vocabulary +
-  root form) is live — `diagram` enters via `manifest.blocks` declarations.
-- P2 `verified`: SPEC §3 lists `diagram` as a v1 core type carried by structured spec;
-  the 18 legacy diagram-type taxonomy is a SPEC nicety, NOT a victory predicate (auditor
-  ruling) — v1 ships exactly ONE type: directed node/edge graph ("architecture/flow").
-- P3 `verified`: Playwright browser binaries land in `~/.cache/ms-playwright` — outside git
-  AND outside KAMISHIBAI_HOME. They are a disposable cache, never a protected asset;
-  recovery for this slice = git revert + that cache may be freely deleted or re-fetched.
-- P4 `verified`: sidecar atomic-write hardening (tmp+rename) rides along — this slice
-  touches the store when archiving exports/snapshots.
+- P1 `verified`: base = S3b sealed (commit f921399); store, list/open/replay, export machinery live.
+- P2 `verified` (auditor correction, sixth consolidation): VC2's producing capability belongs to
+  THIS slice — template namespace + minimal `.toml` manifest; full template authoring (init/fork/
+  import) remains post-campaign S7.
+- P3 `verified` (proportionality ruling): v0.1 `serve` is file-watch + auto-reload (SSE), NOT full
+  Vite HMR — a dev-preview need does not justify a bundler integration; the deviation from SPEC
+  §10's long-term wording is recorded here deliberately.
+- P4 `verified`: comment anchoring rides on block ids already present in the IR (S1 A2).
 
 ## Assertable criteria
-G2 traps promoted: SVG determinism vs layout randomness → D1; export needs a real browser →
-D4 gates it; store writes → D6.
-- [ ] D1 `diagram` block `{type:"diagram", kind:"graph", nodes:[{id,label}...], edges:[{from,to,label?}...]}`
-      renders to inline SVG: every node id appears exactly once as a drawn node, every edge as a
-      drawn connector; layout is DETERMINISTIC (same input → byte-identical SVG under fixed
-      KAMISHIBAI_BUILD_TIME); no external refs inside the SVG; lint exit 0.
-- [ ] D2 Unknown `kind` or a dangling edge endpoint → exit 1 with a `KSB_` code and the block path
-      (never a silently empty SVG). Markdown superset gains a ```diagram fence (JSON or YAML body —
-      pick one, pin it) that parses into the block; `example diagram` round-trips.
-- [ ] D3 `export <artifact> --to pdf` (document artifacts) and `--to pptx` (deck artifacts) produce
-      the file; wrong pairing → exit 1 `KSB_` usage-class code. PPTX: one slide per `<section
-      class="slide">`, slide count equals the deck's. PDF: non-zero pages, file opens (magic-bytes
-      check suffices as the pin).
-- [ ] D4 Browser dependency is honest: when the Playwright browser is absent, `export`/`snapshot`
-      exit 1 with a `KSB_` code whose message names the exact setup command; `setup` installs it.
-      Tests that need the browser install it once in CI-safe fashion (or skip with a LOUD reason
-      pinned as a test-level assertion — absence must never fake green).
-- [ ] D5 `snapshot <artifact> -o out.png` renders a PNG (non-zero dimensions, PNG magic bytes);
-      deck artifacts snapshot slide 1 by default, `--slide N` selects.
-- [ ] D6 Store writes introduced by this slice (archived exports/snapshots, if archived) use the
-      wx/merge discipline; sidecar writes become atomic (tmp+rename) — the S2 ride-along lands here.
-- [ ] D7 Regression: all 112 existing tests green; layering intact (export/snapshot machinery in
-      delivery/ or a new export/ layer, cli stays vue-free, files ≤800 lines); `--json` on all new
-      commands (single JSON object, stable exit classes).
+G2 traps promoted: a serve daemon must not outlive its session unnoticed → E1's close/pid contract;
+comments are DATA, never edits → E2 write-path is append-only JSONL.
+- [ ] E1 `serve <input> [--port N]` starts a local server (deterministic port when given; prints the
+      URL), renders on start, re-renders and pushes a reload event (SSE) when the source file
+      changes; `close` terminates it via a pidfile under `<KAMISHIBAI_HOME>/run/` and exits 0 even
+      when nothing runs (idempotent). Server never touches files outside KAMISHIBAI_HOME + the
+      declared output. Tests drive a real server on an ephemeral port (curl the URL, touch the
+      source, observe a reload event) with explicit timeouts.
+- [ ] E2 Comment loop: the served page carries a dev-only overlay (never present in exported/
+      rendered artifacts — pinned) that POSTs {blockId, text} to the server; the server appends
+      {id, blockId, text, ts, status:"open"} to `<canonical artifact>.comments.jsonl` (atomic
+      append discipline). `comments <artifact> --json` lists entries; `comments resolve <artifact>
+      <id>` flips status to "resolved" (append-a-resolution, never rewrite history). Block ids in
+      comments must exist in the artifact's IR — unknown id → exit 1 KSB_ code.
+- [ ] E3 Template namespace (VC2): `<KAMISHIBAI_HOME>/templates/<ns>/<name>/` holds a package =
+      `manifest.toml` (name, namespace, version, engine, root, blocks — mirroring the JS manifest
+      byte-consistently) + the template identifier resolvable by render `-t`. `setup` (or first
+      touch) registers the built-in `kami/long-form` and `kami/slides` packages; `templates --json`
+      lists them. Probe surface for VC2: the manifest.toml exists and parses.
+- [ ] E4 `debug --json`: single JSON object reporting store root, template count, browser status,
+      engine version; human path via the shared formatter.
+- [ ] E5 List human path pinned (F10 closure): createdAt, generator, and every copies line asserted
+      on the real CLI path; empty-project string pinned verbatim `（此專案尚無產物）`.
+- [ ] E6 open-chain unit tests (F9 closure): via the injectable runner — chain order honoured,
+      first success returns, all-fail → KSB_OPEN_FAILED naming every tried launcher.
+- [ ] E7 Regression: 148 existing tests green; S4 corpus (proofread/journal fixtures) renders and
+      lints clean — its bundled verification happens in this slice's seal round; layering, ≤800
+      lines, --json/exit conventions, formatter single-source all hold.
 
 ## Can't-miss surfaces
 | Surface | Format | Pinning test |
 |---|---|---|
-| diagram SVG | node count ≡ nodes[], edge count ≡ edges[], deterministic bytes | test_diagram_svg_deterministic |
-| export --json | `{"ok":true,"artifact":"<abs>","format":"pdf"|"pptx"}` exactly these keys | test_export_json_shape |
-| snapshot --json | `{"ok":true,"artifact":"<abs>","width":<int>,"height":<int>}` | test_snapshot_json_shape |
-| missing-browser error | single JSON, `KSB_` code, message contains the setup command verbatim | test_export_requires_browser |
-| ```diagram fence | invalid body → exit 1 with block path | test_diagram_fence_invalid |
+| serve stdout | URL line contains `http://127.0.0.1:<port>/`; `--json` `{"ok":true,"url":…,"pid":<int>}` | test_serve_json_shape |
+| reload event | SSE event received after source touch | test_serve_reload_on_change |
+| comments --json | array of `{id,blockId,text,ts,status}` exactly | test_comments_json_shape |
+| exported artifact | contains NO comment-overlay script (dev-only) | test_overlay_absent_from_artifacts |
+| templates --json | array of `{namespace,name,version,root}`; both built-ins present after setup | test_templates_json_shape |
+| manifest.toml | parses; fields byte-consistent with the JS manifest | test_template_manifest_toml |
 
 ## Verbatim Constants
 ```
-diagram IR fields:   type:"diagram", kind:"graph", nodes[{id,label}], edges[{from,to,label?}]
-fence tag:           diagram
-export formats:      pdf (document root) / pptx (deck root)
-new KSB codes:       KSB_DIAGRAM_INVALID, KSB_EXPORT_FORMAT_MISMATCH, KSB_BROWSER_MISSING
-                     (final names may vary only by suffix; prefix KSB_ fixed)
-browser cache:       ~/.cache/ms-playwright  (disposable; never a protected asset)
-snapshot defaults:   deck → slide 1; --slide N to select
+comments sidecar:    <canonical>.comments.jsonl   (append-only; status: open|resolved)
+comment fields:      id, blockId, text, ts, status
+templates layout:    templates/<namespace>/<name>/manifest.toml
+manifest.toml keys:  name, namespace, version, engine, root, blocks
+run dir / pidfile:   <KAMISHIBAI_HOME>/run/serve.pid
+new KSB codes:       KSB_BLOCK_NOT_FOUND, KSB_SERVE_* (prefix fixed; suffixes yours)
+carried from S3b:    KSB_EXPORT_FAILED joins the Verbatim register (seal ride-along)
+criteria patch:      format-mismatch = exit 1 KSB_EXPORT_FORMAT_MISMATCH (validation class);
+                     unknown --to value = exit 2 KSB_USAGE (D3 wording corrected)
+empty-project line:  （此專案尚無產物）
 ```
