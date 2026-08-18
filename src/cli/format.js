@@ -42,6 +42,48 @@ const formatSetup = (r) =>
     `  瀏覽器：${r.browser}（安裝指令：${r.command}）`,
   ].join('\n')
 
+/**
+ * S5 surfaces. Every key of each pinned JSON shape has to appear here too —
+ * the `--json` path and the human path are the same result object rendered
+ * twice, and a key that only one of them shows is the drift this file exists
+ * to prevent.
+ */
+const formatServe = (r) =>
+  [
+    `✔ 預覽伺服器 → ${r.url}`,
+    `  pid ${r.pid}　port ${r.port}`,
+    `  正本 → ${r.artifact}`,
+  ].join('\n')
+
+const formatClose = (r) =>
+  [
+    r.closed.length === 0 ? '✔ 沒有執行中的預覽伺服器' : `✔ 已終止 ${r.closed.join('、')}`,
+    ...(r.stale.length === 0 ? [] : [`  已清掉的殘留紀錄：${r.stale.join('、')}`]),
+  ].join('\n')
+
+const formatCommentEntry = (e) => `• [${e.status}] ${e.id}　${e.blockId}　${e.ts}\n  ${e.text}`
+
+/** `comments` lists an array; `comments add|resolve` answer with one entry. */
+const formatComments = (result) => {
+  if (!Array.isArray(result)) return formatCommentEntry(result)
+  return result.length === 0 ? '（此產物尚無留言）' : result.map(formatCommentEntry).join('\n')
+}
+
+const formatTemplateEntry = (t) =>
+  `• ${t.namespace}/${t.name}@${t.version}　root=${t.root === '' ? '（不限）' : t.root}`
+
+const formatTemplates = (entries) =>
+  entries.length === 0 ? '（尚未註冊任何模板包）' : entries.map(formatTemplateEntry).join('\n')
+
+const formatDebug = (r) =>
+  [
+    `✔ 中央儲存庫 → ${r.home}`,
+    `  模板包：${r.templates}`,
+    `  瀏覽器：${r.browser}`,
+    `  引擎：${r.engine}`,
+    `  執行中的預覽伺服器：${r.servers}`,
+  ].join('\n')
+
 const RENDERERS = Object.freeze({
   render: formatDelivery('渲染'),
   replay: formatDelivery('重繪'),
@@ -53,6 +95,11 @@ const RENDERERS = Object.freeze({
   schema: (r) => JSON.stringify(r, null, 2),
   list: formatList,
   open: (r) => r.path,
+  serve: formatServe,
+  close: formatClose,
+  comments: formatComments,
+  templates: formatTemplates,
+  debug: formatDebug,
 })
 
 export function formatResult(command, result) {

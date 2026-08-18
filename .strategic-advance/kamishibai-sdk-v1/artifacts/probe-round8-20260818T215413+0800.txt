@@ -1,0 +1,114 @@
+=== scribe consolidation #8 raw probes @ 2026-08-18T21:54:13+08:00 ===
+--- P1 git log --oneline -5 ---
+12817c1 chore: archive sealed S3b contract; open S5 contract (serve/reload, comment loop, VC2 template namespace, delivery polish)
+f921399 docs: S3b sealed — diagram/export/snapshot pass five-point audit clean at campaign threshold (VC1 now 4/5 seals)
+a4d340e feat: S3b complete — diagram block v1 (deterministic layered SVG, dual-template), export chains (pdf/pptx via Playwright), snapshot command, atomic sidecar writes; 148 tests green (seal pending, scheduled next session)
+ee882ee feat: S3a 完成並封緘——list block 入詞彙（callout-in-list 保外框）、deck/slide 家族＋kami/slides 模板＋離線播放、詞彙+根形雙層模板守衛（replay 只換皮不轉文體）、date 時區語意修復，112 測試綠
+291dadb chore: S2 合約歸檔入庫＋S3a 合約立約（list block＋deck/slide＋播放最小版）
+--- P1b git status -sb ---
+## main...origin/main
+?? .strategic-advance/kamishibai-sdk-v1/artifacts/scribe8-probes.txt
+--- P1c git log -1 --format=%H ---
+12817c15481de7d76a836c9ba55d520d7225a582
+--- P1d git diff --stat (tracked tree) ---
+--- P2 sealed records ---
+/home/vakarve/project/kamishibai/.claude/archived/CONTRACT.md-1787060990:2:> STATUS: sealed（2026-08-18）— five points compliant: D1–D7 pass first-hand, cross-UI pinned at rejection strength, Verbatim 6/6 zero drift, probes 1/2 caught (five ride-along coverage notes, none blocking)
+/home/vakarve/project/kamishibai/.claude/archived/CONTRACT.md-1786881210:2:> STATUS: sealed（2026-08-16）— 五點全符合：A1–A10 逐條過、7 表面全釘死、跨 UI 單一 formatter、九組常數 byte-exact、突變 2/2 被攔（歷三輪 21 findings 修復後 clean）
+/home/vakarve/project/kamishibai/.claude/archived/CONTRACT.md-1786979018:2:> STATUS: sealed（2026-08-17）— 五點全符合：C1–C8 過、Verbatim 9/9 byte-equal、詞彙＋根形雙層守衛雙向釘死、突變 2/2 攔截（兩輪 6 findings：5 修復、1 列冊）
+/home/vakarve/project/kamishibai/.claude/archived/CONTRACT.md-1786972817:2:> STATUS: sealed（2026-08-17）— 五點全符合：B1–B8 過（B2 依終審條文補丁）、跨 UI 單一 formatter、Verbatim 7/7、F1/F2/F8 修復經回歸突變確認（兩輪 11 findings：4 修復、6 列冊隨行、1 條文補丁）
+--- P2b live CONTRACT.md sealed count ---
+0
+--- P3 sealed S3b contract head ---
+# CONTRACT — S3b: diagram block v1 + export chains (pdf/pptx) + snapshot
+> STATUS: sealed（2026-08-18）— five points compliant: D1–D7 pass first-hand, cross-UI pinned at rejection strength, Verbatim 6/6 zero drift, probes 1/2 caught (five ride-along coverage notes, none blocking)
+--- P3b live contract head ---
+# CONTRACT — S5: serve/reload + comment loop + template namespace (VC2) + delivery polish
+--- P4 static it() count across tests/ ---
+TOTAL_STATIC_IT=139
+--- P4b it modifier variants (.each/.skip/.only) ---
+0
+--- P4c test files ---
+28
+--- P5 manifest.toml under repo templates ---
+0
+--- P5b repo templates namespaces ---
+kami
+--- P4d brace-depth loop-nested it() scan ---
+static it( declarations: 139
+loop-nested it( declarations: 1  -> tests/a1-render.test.js:140, loop LIST_FLAVOURS (2 entries: bullet, ordered)
+runtime arithmetic: 139 - 1 + 2 = 140 runtime cases
+PACKET ASSERTS 148 (proven by execution). Scribe reachable surface yields 140. Gap = 8.
+npm/vitest execution is outside the scribe bash allowed set -> cannot settle first-hand.
+--- P4e live S5 contract test-count mention ---
+7:manifest — the capability victory criterion VC2 requires. Existing 148 tests stay green.
+45:- [ ] E7 Regression: 148 existing tests green; S4 corpus (proofread/journal fixtures) renders and
+--- P4f sealed S3b contract test-count mention ---
+8:*see* what it rendered. Existing 112 tests stay green.
+44:- [ ] D7 Regression: all 112 existing tests green; layering intact (export/snapshot machinery in
+--- P6 vc4 snapshot comparison artifacts ---
+probe-2026-08-16T101716+0800-init-consolidation.txt
+probe-round2-20260816T103959+0800.txt
+probe-round3-20260816T161252+0800.txt
+probe-round4-20260816T193915+0800.txt
+probe-round5-20260817T211941+0800.txt
+probe-round6-20260817T224730+0800.txt
+probe-round7-20260817T235014+0800.txt
+scribe8-probes.txt
+seed-2026-08-16T101716+0800.json
+state.draft-REJECTED-round5-20260817T211941+0800.json
+state.draft-round6-20260817T224730+0800.json
+state.draft-round7-20260817T235014+0800.json
+snapshot-named count:
+0
+--- P7 font binaries in repo (risk font-license) ---
+--- P7b TsangerJinKai references ---
+/home/vakarve/project/kamishibai/src/core/lint.js
+--- P8 existing plugin renderers untouched (risk renderer-regression) ---
+12817c1 chore: archive sealed S3b contract; open S5 contract (serve/reload, comment loop, VC2 template namespace, delivery polish)
+.claude/archived/CONTRACT.md-1787060990
+.strategic-advance/kamishibai-sdk-v1/artifacts/probe-round7-20260817T235014+0800.txt
+.strategic-advance/kamishibai-sdk-v1/artifacts/state.draft-round7-20260817T235014+0800.json
+.strategic-advance/kamishibai-sdk-v1/run-ledger.jsonl
+.strategic-advance/kamishibai-sdk-v1/sand-table.html
+.strategic-advance/kamishibai-sdk-v1/state.json
+CONTRACT.md
+f921399 docs: S3b sealed — diagram/export/snapshot pass five-point audit clean at campaign threshold (VC1 now 4/5 seals)
+CONTRACT.md
+a4d340e feat: S3b complete — diagram block v1 (deterministic layered SVG, dual-template), export chains (pdf/pptx via Playwright), snapshot command, atomic sidecar writes; 148 tests green (seal pending, scheduled next session)
+.claude/archived/CONTRACT.md-1786979018
+.strategic-advance/kamishibai-sdk-v1/artifacts/probe-round6-20260817T224730+0800.txt
+.strategic-advance/kamishibai-sdk-v1/artifacts/state.draft-round6-20260817T224730+0800.json
+.strategic-advance/kamishibai-sdk-v1/run-ledger.jsonl
+.strategic-advance/kamishibai-sdk-v1/sand-table.html
+.strategic-advance/kamishibai-sdk-v1/state.json
+CONTRACT.md
+fixtures/diagram-sample.md
+package-lock.json
+package.json
+src/cli/commands/export.js
+src/cli/commands/replay.js
+src/cli/commands/setup.js
+src/cli/commands/snapshot.js
+src/cli/format.js
+src/cli/index.js
+src/core/blocks.js
+src/core/diagram.js
+src/core/errors.js
+--- P9 src layer file count ---
+49
+--- P10 LATE-RUN observation (2026-08-18T22:0x+08:00) ---
+git status --porcelain now shows F5 mutation-scope activity started by the S5 executor:
+ M src/delivery/atomic.js
+ M src/delivery/home.js
+ M src/render/index.js
+ M src/render/templates.js
+?? .strategic-advance/kamishibai-sdk-v1/artifacts/probe-round8-20260818T215413+0800.txt
+?? .strategic-advance/kamishibai-sdk-v1/state.draft.json
+?? src/cli/registry.js
+?? src/delivery/templates.js
+?? src/delivery/toml.js
+HEAD still:
+12817c15481de7d76a836c9ba55d520d7225a582
+NOTE: packet forewarned this. Entry/recovery evidence is anchored to 12817c1; tracked tree WAS clean at probe time 21:54:13+08:00.
+--- P11 vc4 artifacts snapshot-comparison count ---
+0

@@ -13,6 +13,11 @@ import { replayCommand } from './commands/replay.js'
 import { exportCommand } from './commands/export.js'
 import { snapshotCommand } from './commands/snapshot.js'
 import { setupCommand } from './commands/setup.js'
+import { serveCommand } from './commands/serve.js'
+import { closeCommand } from './commands/close.js'
+import { commentsCommand } from './commands/comments.js'
+import { templatesCommand } from './commands/templates.js'
+import { debugCommand } from './commands/debug.js'
 
 const argv = process.argv
 const wantsJson = argv.includes('--json')
@@ -35,6 +40,11 @@ const COMMANDS = Object.freeze([
   'export',
   'snapshot',
   'setup',
+  'serve',
+  'close',
+  'comments',
+  'templates',
+  'debug',
 ])
 
 /** The single wording for "you gave no command", shared by both output paths. */
@@ -162,6 +172,57 @@ const buildProgram = () => {
     .action(async (options) => {
       const { result, exitCode } = await setupCommand(options)
       emit({ command: 'setup', result, json: wantsJson, exitCode })
+    })
+
+  program
+    .command('serve')
+    .description('起本地預覽伺服器：來源檔一變就重繪並推播 reload（SPEC §10.2 watch 模式）')
+    .argument('<input>', 'Markdown 超集／block tree JSON 檔路徑')
+    .option('--port <n>', '指定連接埠（預設由系統挑一個空的）')
+    .option('-t, --template <key>', '覆寫模板 <namespace>/<name>')
+    .option('-g, --generator <name>', 'IR generator 欄位值')
+    .option('-p, --project <name>', '覆寫中央產物庫的專案名（預設依四層解析）')
+    .option('--json', '以 JSON 輸出結果')
+    .action(async (input, options) => {
+      const { result, exitCode } = await serveCommand(input, options)
+      emit({ command: 'serve', result, json: wantsJson, exitCode })
+    })
+
+  program
+    .command('close')
+    .description('終止本 SDK 起的預覽伺服器（沒有在跑也算成功）')
+    .option('--json', '以 JSON 輸出結果')
+    .action((options) => {
+      const { result, exitCode } = closeCommand(options)
+      emit({ command: 'close', result, json: wantsJson, exitCode })
+    })
+
+  program
+    .command('comments')
+    .description('讀寫產物留言（block id 錨定）：列出／`resolve <產物> <id>`／`add <產物> <blockId> <文字>`')
+    .argument('<args...>', '`<產物>`、`resolve <產物> <id>` 或 `add <產物> <blockId> <文字>`')
+    .option('--json', '以 JSON 輸出結果')
+    .action((args) => {
+      const { result, exitCode } = commentsCommand(args)
+      emit({ command: 'comments', result, json: wantsJson, exitCode })
+    })
+
+  program
+    .command('templates')
+    .description('列出中央儲存庫已註冊的模板包')
+    .option('--json', '以 JSON 輸出結果')
+    .action((options) => {
+      const { result, exitCode } = templatesCommand(options)
+      emit({ command: 'templates', result, json: wantsJson, exitCode })
+    })
+
+  program
+    .command('debug')
+    .description('診斷：儲存庫位置、模板包數、瀏覽器狀態、引擎版本')
+    .option('--json', '以 JSON 輸出結果')
+    .action(async (options) => {
+      const { result, exitCode } = await debugCommand(options)
+      emit({ command: 'debug', result, json: wantsJson, exitCode })
     })
 
   program

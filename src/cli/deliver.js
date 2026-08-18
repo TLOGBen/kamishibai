@@ -3,6 +3,7 @@ import { EXIT } from '../core/errors.js'
 import { resolveProject } from '../delivery/project.js'
 import { archiveArtifact } from '../delivery/store.js'
 import { writeArtifact } from '../delivery/write.js'
+import { registerBuiltinTemplates } from './registry.js'
 
 /**
  * The delivery chain shared by `render` and `replay` (SPEC §8): one canonical
@@ -39,6 +40,11 @@ export function deliver({
     copies: [path],
     env,
   })
+
+  // First touch of the store registers the built-in template packages (E3), so
+  // an Agent that never ran `setup` still finds a populated namespace. It is a
+  // no-op once the manifests match, which is the normal case.
+  registerBuiltinTemplates(env)
 
   const result = { ok: true, artifact: path, bytes, archived }
   return {

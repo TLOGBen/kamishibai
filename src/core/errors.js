@@ -34,6 +34,16 @@ export const CODES = Object.freeze({
   EXPORT_FORMAT_MISMATCH: 'KSB_EXPORT_FORMAT_MISMATCH',
   BROWSER_MISSING: 'KSB_BROWSER_MISSING',
   EXPORT_FAILED: 'KSB_EXPORT_FAILED',
+  /** S5 — a comment anchored to a block the artifact's IR does not contain. */
+  BLOCK_NOT_FOUND: 'KSB_BLOCK_NOT_FOUND',
+  /** S5 — `comments resolve` naming a comment id no record carries. */
+  COMMENT_NOT_FOUND: 'KSB_COMMENT_NOT_FOUND',
+  /** S5 — the dev preview server could not be started (port taken, no handshake). */
+  SERVE_START_FAILED: 'KSB_SERVE_START_FAILED',
+  /** S5 — `--port` that is not a legal TCP port. */
+  SERVE_PORT_INVALID: 'KSB_SERVE_PORT_INVALID',
+  /** S5 — a recorded server could not be terminated. */
+  SERVE_CLOSE_FAILED: 'KSB_SERVE_CLOSE_FAILED',
 })
 
 /** Root path token used when a finding cannot be tied to a single block. */

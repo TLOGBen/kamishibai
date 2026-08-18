@@ -12,6 +12,16 @@ export function listTemplateKeys() {
   return [...REGISTRY.keys()].sort()
 }
 
+/**
+ * The factory manifests as plain data, for layers that need to *describe* the
+ * built-ins without rendering with them (the store's template namespace, E3).
+ * Exposed from the registry rather than re-imported by the caller so a template
+ * added here cannot go unregistered on disk.
+ */
+export function builtinManifests() {
+  return listTemplateKeys().map((key) => REGISTRY.get(key).manifest)
+}
+
 /** Resolve `<namespace>/<name>[@version]`; the version part is advisory in S1. */
 export function resolveTemplate(key) {
   const bare = String(key ?? '').split('@')[0]

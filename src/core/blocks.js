@@ -107,6 +107,22 @@ export function* walkBlocks(node, path = 'doc') {
   }
 }
 
+/**
+ * Every block id a tree carries — the set of anchors a comment may name
+ * (CONTRACT E2). Derived from the same walk that assigns the ids, so an anchor
+ * can never be legal in one place and unknown in the other.
+ *
+ * @returns {Set<string>}
+ */
+export function collectBlockIds(node) {
+  const ids = new Set()
+  if (node === undefined || node === null) return ids
+  for (const { block } of walkBlocks(node)) {
+    if (typeof block?.id === 'string') ids.add(block.id)
+  }
+  return ids
+}
+
 /** The first `deck` block in a tree, or undefined for a document artifact. */
 export function findDeck(node) {
   for (const { block } of walkBlocks(node)) {

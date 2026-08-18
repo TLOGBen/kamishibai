@@ -106,6 +106,36 @@ export function archiveArtifact({ project, slug, html, copies = [], env = proces
 }
 
 /**
+ * Refresh a canonical copy **that the calling session itself created** with a
+ * newer render of the same source (CONTRACT E1, seal patch F1).
+ *
+ * This is the one sanctioned overwrite of an artifact, and the boundary matters
+ * more than the mechanism. The `wx` law above protects *history*: an artifact
+ * somebody else's run archived is a record, and records are never rewritten. A
+ * live `serve` session's own copy is not history yet — it is the working
+ * document being edited, and freezing it at the first render is what let the
+ * served IR and the canonical IR drift apart. Comments anchored to a block the
+ * canonical did not contain were then unresolvable by the very artifact they
+ * were filed against.
+ *
+ * The caller owns the "did I create this?" judgement; this function only
+ * guarantees the write is all-or-nothing (tmp + rename), so a reader — or a
+ * `comments add` running at that instant — sees one whole render or the other,
+ * never a torn one.
+ *
+ * @param {string} artifactPath the session's own canonical copy
+ * @param {string} html the newer render
+ * @returns {string} the artifact path
+ */
+export function refreshArtifact(artifactPath, html) {
+  try {
+    return writeFileAtomic(artifactPath, html)
+  } catch (cause) {
+    throw writeFailed(artifactPath, cause)
+  }
+}
+
+/**
  * Record delivery copies against a claimed name, merging with whatever the
  * index already held (CONTRACT B2 — 已存在→不動既有檔案、僅追加).
  *

@@ -1,4 +1,4 @@
-import { renameSync, rmSync, writeFileSync } from 'node:fs'
+import { appendFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { basename, dirname, join } from 'node:path'
 
 /**
@@ -22,6 +22,33 @@ let sequence = 0
 const tempPathFor = (targetPath) => {
   sequence += 1
   return join(dirname(targetPath), `.${basename(targetPath)}.${process.pid}.${sequence}.tmp`)
+}
+
+/**
+ * Append one record line to an append-only log (CONTRACT E2 的留言 sidecar).
+ *
+ * The rename dance above is the wrong tool here and would be actively worse: a
+ * read-all/rewrite-all cycle turns an append-only history into a full-file
+ * replacement, so a crash — or a second writer — can lose records that were
+ * already durable. A single `O_APPEND` write of one line is what an append log
+ * actually needs: the kernel places every writer at the current end of file, so
+ * concurrent appends interleave by record instead of overwriting each other.
+ *
+ * The line is written in one call for that reason; callers must therefore pass
+ * one complete record **without** its trailing newline — this function adds the
+ * terminator, so that the record and its delimiter cannot be split across two
+ * writes and interleaved with somebody else's.
+ *
+ * @param {string} targetPath absolute path of the log
+ * @param {string} line one record, without its trailing newline
+ * @returns {string} the target path
+ */
+export function appendLineAtomic(targetPath, line) {
+  if (line.includes('\n')) {
+    throw new Error('append record must be a single line; embedded newline would split the record')
+  }
+  appendFileSync(targetPath, `${line}\n`, { encoding: 'utf8', flag: 'a' })
+  return targetPath
 }
 
 /**

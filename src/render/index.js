@@ -7,7 +7,7 @@ import { renderBody } from './ssr.js'
 import { collectCodepoints, embedFontSubset } from './fonts.js'
 import { assembleDocument } from './html.js'
 
-export { resolveTemplate, listTemplateKeys } from './templates.js'
+export { resolveTemplate, listTemplateKeys, builtinManifests } from './templates.js'
 export { IR_SCRIPT_TYPE } from './html.js'
 
 /**

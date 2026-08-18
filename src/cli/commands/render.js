@@ -1,7 +1,6 @@
 import { readSource } from '../../delivery/read.js'
-import { parseMarkdown, parseBlockTree } from '../../parser/index.js'
 import { resolveCreatedAt } from '../../core/ir.js'
-import { renderArtifact } from '../../render/index.js'
+import { compileDocument } from '../../render/compile.js'
 import { deliver } from '../deliver.js'
 
 /**
@@ -14,17 +13,13 @@ import { deliver } from '../deliver.js'
  */
 export async function renderCommand(inputSpec, options = {}, env = process.env) {
   const { source, format, slug } = readSource(inputSpec)
-  // The template decides whether `---` is a page break, so the `-t` override has
-  // to reach the parser — resolving it only at render time would compile a deck
-  // source as a document and then draw the empty result with the deck template.
-  const parsed =
-    format === 'json' ? parseBlockTree(source) : parseMarkdown(source, { template: options.template })
 
-  const { html, slides } = await renderArtifact({
-    doc: parsed.doc,
-    templateKey: options.template ?? parsed.templateKey,
-    createdAt: resolveCreatedAt(env),
+  const { html, slides } = await compileDocument({
+    source,
+    format,
+    template: options.template,
     generator: options.generator,
+    createdAt: resolveCreatedAt(env),
   })
 
   return deliver({ html, slides, slug, options, env })

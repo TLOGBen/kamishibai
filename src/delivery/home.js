@@ -18,6 +18,12 @@ export const DEFAULT_HOME_DIRNAME = '.kamishibai'
 export const ARTIFACTS_DIRNAME = 'artifacts'
 /** Verbatim CONTRACT constant — 標記檔名. */
 export const MARKER_FILENAME = 'created-by'
+/** Verbatim CONTRACT constant — `templates/<namespace>/<name>/manifest.toml`. */
+export const TEMPLATES_DIRNAME = 'templates'
+/** Verbatim CONTRACT constant — `<KAMISHIBAI_HOME>/run/serve.pid`. */
+export const RUN_DIRNAME = 'run'
+/** Verbatim CONTRACT constant — the serve pidfile's basename. */
+export const SERVE_PIDFILE = 'serve.pid'
 
 /** Absolute store root: `KAMISHIBAI_HOME` wins, else `~/.kamishibai`. */
 export function resolveHome(env = process.env) {
@@ -41,4 +47,24 @@ export function projectDir(project, env = process.env) {
 /** `<HOME>/created-by` */
 export function markerPath(env = process.env) {
   return join(resolveHome(env), MARKER_FILENAME)
+}
+
+/** `<HOME>/templates` — the template namespace root (CONTRACT E3). */
+export function templatesRoot(env = process.env) {
+  return join(resolveHome(env), TEMPLATES_DIRNAME)
+}
+
+/** `<HOME>/templates/<namespace>/<name>` */
+export function templatePackageDir(namespace, name, env = process.env) {
+  return join(templatesRoot(env), namespace, name)
+}
+
+/** `<HOME>/run` — ephemeral process state, never a record. */
+export function runDir(env = process.env) {
+  return join(resolveHome(env), RUN_DIRNAME)
+}
+
+/** `<HOME>/run/serve.pid` */
+export function servePidfile(env = process.env) {
+  return join(runDir(env), SERVE_PIDFILE)
 }

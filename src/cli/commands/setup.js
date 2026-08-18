@@ -3,6 +3,7 @@ import { EXIT } from '../../core/errors.js'
 import { resolveHome } from '../../delivery/home.js'
 import { ensureStoreRoot } from '../../delivery/store.js'
 import { BROWSER_SETUP_COMMAND, browserMissingError, probeBrowser } from '../../export/browser.js'
+import { registerBuiltinTemplates } from '../registry.js'
 
 /**
  * `kamishibai setup [--dry-run]` — SPEC §10.1「初始化環境（建中央儲存庫、裝渲染依賴）」.
@@ -28,6 +29,11 @@ const runInstall = () => {
 export async function setupCommand(options = {}, env = process.env) {
   const dryRun = options.dryRun === true
   const home = dryRun ? resolveHome(env) : ensureStoreRoot(env).root
+
+  // Initialising the environment includes populating the template namespace
+  // (CONTRACT E3): a store without `templates/` is only half a store. Skipped
+  // under `--dry-run`, which must not create so much as a directory.
+  if (!dryRun) registerBuiltinTemplates(env)
 
   const probe = await probeBrowser()
   if (probe.available) {

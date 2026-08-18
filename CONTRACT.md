@@ -1,4 +1,5 @@
 # CONTRACT — S5: serve/reload + comment loop + template namespace (VC2) + delivery polish
+> STATUS: sealed（2026-08-18）— five points compliant: E1–E7 pass first-hand (F1 anchor-drift fixed under the living-canonical ruling, red-capable both directions), Verbatim zero drift, cross-UI pinned on real paths, S4 bundled verification passed (two ride-along pin notes, none blocking)
 
 ## Goal
 The SDK's delivery layer completes: a live preview server with auto-reload, the block-anchored
@@ -22,7 +23,9 @@ comments are DATA, never edits → E2 write-path is append-only JSONL.
 - [ ] E1 `serve <input> [--port N]` starts a local server (deterministic port when given; prints the
       URL), renders on start, re-renders and pushes a reload event (SSE) when the source file
       changes; `close` terminates it via a pidfile under `<KAMISHIBAI_HOME>/run/` and exits 0 even
-      when nothing runs (idempotent). Server never touches files outside KAMISHIBAI_HOME + the
+      when nothing runs (idempotent); **the session canonical is a living document (seal patch F1):
+      each successful re-render atomically refreshes the archived copy this session itself created —
+      live IR and canonical IR can never drift; pre-existing store artifacts remain untouchable**. Server never touches files outside KAMISHIBAI_HOME + the
       declared output. Tests drive a real server on an ephemeral port (curl the URL, touch the
       source, observe a reload event) with explicit timeouts.
 - [ ] E2 Comment loop: the served page carries a dev-only overlay (never present in exported/
