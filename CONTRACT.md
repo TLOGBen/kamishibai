@@ -1,4 +1,5 @@
 # CONTRACT — S3b: diagram block v1 + export chains (pdf/pptx) + snapshot
+> STATUS: sealed（2026-08-18）— five points compliant: D1–D7 pass first-hand, cross-UI pinned at rejection strength, Verbatim 6/6 zero drift, probes 1/2 caught (five ride-along coverage notes, none blocking)
 
 ## Goal
 The IR's `diagram` block becomes renderable: a structured node-and-edge spec turns into
