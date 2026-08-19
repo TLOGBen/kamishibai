@@ -33,8 +33,13 @@
 
 （已清空——所有霧項均被後續定案吸收：品質閘門對接由 11 的 manifest `[gates]`＋lint 收編承接；SVG 圖表模組化由 P1 的 `diagram` block＋plugin 機制承接；各 skill 遷移細節由 08 的 S1–S9 切片表承接，實作屬地圖之外。）
 
-**2026-08-19 增補（實作期浮現，尚未開票）** — 詳見
+**2026-08-19 增補（實作期浮現）** — 詳見
 `.claude/research/2026-08-19-perf-token-benchmark.md` §6：
+
+- **[13 Block 標準轉換接口與模板職責邊界](issues/13-block-interface.md)（`Status: open`）** —
+  已開票。一個 block 型別現散在 **11 個檔案**，切片維度是「層」而擴充單位是「block」，
+  故 SPEC §11–§12 的 plugin **在結構上不可能**。本票是 U1 與 U3 的共同前提，
+  且**部分重啟 03 的定案 2**（模板＝Vue 元件家族）。
 
 - **U1 `diagram` 擴充欄位走語意還是外觀？** 既有前例 `callout` 是 `variant: note|warn`（語意）
   而非「黃色框」。走語意則 replay 換模板會跟著換皮；走外觀則版面跑進 IR，與 02 刀口衝突。

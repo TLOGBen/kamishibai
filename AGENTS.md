@@ -41,7 +41,7 @@ kamishibai（紙芝居）是一套**公開發佈的通用 Agent Presentation SDK
 |---|---|
 | **`SPEC.md`** | 實作用規格書。動工前必讀。 |
 | `.claude/wayfinder/kamishibai-sdk/map.md` | 決策地圖：Destination、常設原則、12 張票的定案摘要 |
-| `.claude/wayfinder/kamishibai-sdk/issues/01`–`12` | **票面本文＝最終真源**。每張的 `## Answer` 是定案，`## Comments` 是脈絡 |
+| `.claude/wayfinder/kamishibai-sdk/issues/01`–`13` | **票面本文＝最終真源**。每張的 `## Answer` 是定案，`## Comments` 是脈絡。**13 為 `Status: open`，Answer 未定——別在那題腦補實作** |
 | `.claude/research/tsanger-jinkai02-license.md` | 字體授權查證報告（NO-GO，見 §4.1） |
 | `.claude/research/2026-08-19-perf-token-benchmark.md` | 效能／token 一手實測 ＋ 架構缺口報告（三層歸位、模板抽換實測、四項未定決策 U1–U4、測試套件 timeout 判定） |
 
