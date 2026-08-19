@@ -29,7 +29,7 @@ kamishibai（紙芝居）是一套**公開發佈的通用 Agent Presentation SDK
 
 - **刀口**：渲染＋遞送＋模板系統＋持久化歸 SDK；**內容合成歸 skill**。（來源：issues/02）
 - **第一批客戶**：baransu 與 common-dev 兩個 plugin；book 是第一驗證客戶。（來源：map.md Notes、issues/08）
-- **License**：MIT。**Repo**：https://github.com/TLOGBen/kamishibai （來源：issues/09、issues/01）
+- **License**：**目前 `UNLICENSED`，保留所有權利**——v1.0 前不對外授權。issues/09 定案的 MIT 是**目的地、尚未生效**，別在文件或 `package.json` 裡寫成已授權。**Repo**：https://github.com/TLOGBen/kamishibai （來源：issues/09、issues/01）
 
 一句話判準：**如果你在寫「內容怎麼來」，那不屬於這個 repo；如果你在寫「內容怎麼變成畫面、怎麼送出去、存在哪」，那屬於。**
 

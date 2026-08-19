@@ -4,8 +4,6 @@
 
 > *An agent authors structured content; the SDK deterministically renders it into a self-contained offline artifact.*
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-
 ---
 
 ## 這是什麼
@@ -186,4 +184,9 @@ template: kami/long-form
 
 ## License
 
-MIT
+**尚未授權（`UNLICENSED`）——保留所有權利。**
+
+本專案仍在成形中，v1.0 之前不附授權條款：你可以閱讀原始碼，但未獲授權使用、修改或再散布。
+
+`issues/09-public-packaging.md` 已定案**最終採 MIT**，但要等實作收斂、第三方資產的授權盤點完成（見 `.claude/research/tsanger-jinkai02-license.md`）之後才生效。
+屆時會補上 `LICENSE` 與 `THIRD_PARTY_LICENSES`——出廠字體 Noto Serif TC 走 SIL OFL 1.1，須保留自身授權全文，**不得併入 MIT 宣告**。

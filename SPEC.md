@@ -15,7 +15,7 @@ kamishibai（紙芝居）是一套**公開發佈的通用 Agent Presentation SDK
 定名取自日本街頭說書以圖卡逐張呈現故事的技藝，與「把內容做成可呈現畫面」的本業直接對應，並延續 baransu（バランス）→ Kami 主題 → kamishibai 的命名血緣。候選 hyousou（表装）、butai（舞台）、utsuwa（器）皆落選。（來源：issues/01、map.md Notes）
 
 - Repo：https://github.com/TLOGBen/kamishibai （2026-08-16 建立）
-- License：**MIT**（來源：issues/09）
+- License：**目前 `UNLICENSED`（保留所有權利）**；issues/09 定案的 **MIT 為目的地，v1.0 前不生效**（來源：issues/09）
 - 從第一天就設計成可公開發佈的通用 SDK；baransu 與 common-dev 兩個 plugin 是**第一批客戶**，不是唯一客戶。（來源：map.md Notes）
 
 ### 1.2 為什麼要有它（現況背景）
@@ -535,7 +535,7 @@ SendUserFile 屬 Claude harness 工具，由 skill 側呼叫，不進 SDK。
 
 | 題目 | 定案 |
 |---|---|
-| License | **MIT** |
+| License | **MIT**（定案）——**尚未生效**：`package.json` 現為 `UNLICENSED` + `private: true`，v1.0 收斂後才轉正 |
 | 套件名 | **`@kamishibai/sdk`（已定案）**——npm org `@kamishibai` 於 2026-08-16 由使用者註冊成功（帳號 vakarve）。裸名 `kamishibai` 已被 Re:Earth 影片工具佔走（實查：`curl registry.npmjs.org/kamishibai` → 200，latest 0.4.0），保底名 `kamishibai-sdk` 不再需要 |
 | CLI 執行檔 | 一律 **`kamishibai`** |
 | 版本策略 | **semver、0.x 起步**；book 遷移完（**S3**）升 **1.0**；兩 plugin 以 `^` 追版 |
