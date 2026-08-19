@@ -1,7 +1,7 @@
 # AGENTS.md — 在 kamishibai repo 工作的 Agent 入口文件
 
 > **v0.2（2026-08-18）**。SDK **已經跑得起來**：S1／S2／S3a／S3b／S5 五片封緘，
-> 186 測試綠，CLI 15 個指令可用，中央儲存庫 `~/.kamishibai` 為真實落點。
+> 186 測試綠（**機器敏感，見量測報告 §1.5**），CLI 15 個指令可用，中央儲存庫 `~/.kamishibai` 為真實落點。
 > 本文是**在本 repo 內開發 SDK 的 Agent** 的入口。規格衝突時以 wayfinder 票面 Answer 為準。
 
 ---

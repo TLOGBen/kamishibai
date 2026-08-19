@@ -33,6 +33,20 @@
 
 （已清空——所有霧項均被後續定案吸收：品質閘門對接由 11 的 manifest `[gates]`＋lint 收編承接；SVG 圖表模組化由 P1 的 `diagram` block＋plugin 機制承接；各 skill 遷移細節由 08 的 S1–S9 切片表承接，實作屬地圖之外。）
 
+**2026-08-19 增補（實作期浮現，尚未開票）** — 詳見
+`.claude/research/2026-08-19-perf-token-benchmark.md` §6：
+
+- **U1 `diagram` 擴充欄位走語意還是外觀？** 既有前例 `callout` 是 `variant: note|warn`（語意）
+  而非「黃色框」。走語意則 replay 換模板會跟著換皮；走外觀則版面跑進 IR，與 02 刀口衝突。
+  牽動節點副標／語意色／群組框／虛線邊該進 core 還是 plugin。
+- **U2 版面座標系（24 格）的詞彙形狀，以及 `--measure` 與 diagram 寬度假設的遷移。**
+  `core/diagram.js` 幾何綁死在 740px，兩者不可分開做。
+- **U3 模板包格式：宣告式 schema 的欄位集與 loader 的信任邊界。**
+  現況 store 的 template namespace 只是登記簿（`render -t` 實測 `KSB_TEMPLATE_NOT_FOUND`）。
+- **U4 slot 遙測的隱私與預設值。** SPEC §12.1 要求每次 render/lint 往
+  `~/.kamishibai/telemetry/` append 跨專案資料；公開 MIT SDK 需決定預設開／關與告知義務。
+  尚未實作，是最便宜的決定時機。
+
 ## Out of scope
 
 - **SDK 的實作本身**——地圖終點是可動工規格（含遷移策略）；寫 code 是地圖之後的事。
